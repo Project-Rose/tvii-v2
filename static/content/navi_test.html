@@ -1,0 +1,178 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Navi Test</title>
+    </head>
+    <body style="background-color: #ffffcc" onload="init()">
+        <script type="text/javascript">
+            <!--
+            var selected = false;
+            var sumDistance = 0.0;
+            var thresh = 30.0;
+            var nowX = 0;
+            var nowY = 0;
+
+            function init() {
+                vino.navi_setBaseVisibilityOnKeyEvent(true);
+            }
+
+            function reset() {
+                document.activeElement.blur();
+                vino.navi_reset();
+                selected = false;
+            }
+
+            function on(element) {
+                if (element.id == document.activeElement.id) {
+                    selected = true;
+                } else {
+                    vino.navi_reset();
+                }
+
+                sumDistance = 0.0;
+                nowX = event.screenX;
+                nowY = event.screenY;
+
+                console.log("touch:" + nowX + "," + nowY);
+            }
+
+            function move() {
+                if (sumDistance > thresh) {
+                    reset();
+                } else {
+                    sumDistance +=
+                        Math.abs(nowX - event.screenX) +
+                        Math.abs(nowY - event.screenY);
+                    nowX = event.screenX;
+                    nowY = event.screenY;
+                }
+            }
+
+            function off(element) {
+                if (sumDistance <= thresh) {
+                    element.focus();
+                    vino.navi_setToFocused(true);
+
+                    if (selected) {
+                        vino.lyt_startTouchEffect();
+                        vino.navi_decide();
+                        reset();
+                    }
+                } else {
+                    reset();
+                }
+            }
+
+            // -->
+        </script>
+
+        <table border="1">
+            <tr>
+                <th>aa</th>
+                <th>bb</th>
+                <th>cc</th>
+                <th>dd</th>
+            </tr>
+            <tr>
+                <td
+                    id="0"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    1
+                </td>
+                <td
+                    id="1"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    2
+                </td>
+                <td
+                    id="2"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    3
+                </td>
+                <td
+                    id="3"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    4
+                </td>
+            </tr>
+            <tr>
+                <td
+                    id="4"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    1
+                </td>
+                <td
+                    id="5"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    2
+                </td>
+                <td
+                    id="6"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    3
+                </td>
+                <td
+                    id="7"
+                    tabindex="0"
+                    navi_target
+                    width="100"
+                    height="100"
+                    onMouseDown="on(this)"
+                    onMouseMove="move()"
+                    onMouseUp="off(this)"
+                >
+                    4
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

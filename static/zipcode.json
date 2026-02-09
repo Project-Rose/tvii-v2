@@ -1,0 +1,432 @@
+{
+    "data": {
+        "zipcode": "10010",
+        "country": null,
+        "items": [
+            {
+                "city": "New York",
+                "id": 9166060380,
+                "legacyId": 0,
+                "name": "Astound - Manhattan (Analog)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9133001919,
+                "legacyId": 0,
+                "name": "Astound - Manhattan (Digital)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Queens",
+                "id": 9166060381,
+                "legacyId": 0,
+                "name": "Astound - New York (Analog)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Queens",
+                "id": 9133005434,
+                "legacyId": 0,
+                "name": "Astound - New York (Digital)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Manhattan",
+                "id": 9166052034,
+                "legacyId": 0,
+                "name": "Astound Streaming - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9166055989,
+                "legacyId": 0,
+                "name": "DirecTV Stream - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9166051134,
+                "legacyId": 0,
+                "name": "FuboTV - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9166049857,
+                "legacyId": 0,
+                "name": "Hulu Live TV - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9100009042,
+                "legacyId": 0,
+                "name": "Sling TV - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Manhattan",
+                "id": 9100002336,
+                "legacyId": 0,
+                "name": "Spectrum - Manhattan (Digital)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Manhattan",
+                "id": 9166056370,
+                "legacyId": 0,
+                "name": "Time Warner Spectrum - Manhattan (Analog)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Manhattan",
+                "id": 9166047633,
+                "legacyId": 0,
+                "name": "Time Warner Spectrum - Manhattan (Digital)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "Queens",
+                "id": 9100003811,
+                "legacyId": 0,
+                "name": "Verizon FiOS TV - Queens (Digital)",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9166050734,
+                "legacyId": 0,
+                "name": "YouTube TV - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "cable",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9133007816,
+                "legacyId": 0,
+                "name": "DirecTV - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "satellite",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9100008443,
+                "legacyId": 0,
+                "name": "Dish - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "satellite",
+                "devices": []
+            },
+            {
+                "city": "Rocklin",
+                "id": 9133006280,
+                "legacyId": 0,
+                "name": "Glorystar - National",
+                "state": "CA",
+                "timeOffsets": [
+                    {
+                        "Start": 1741514400,
+                        "End": 1762074000,
+                        "Offset": 420,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762074000,
+                        "End": 1772964000,
+                        "Offset": 480,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "satellite",
+                "devices": []
+            },
+            {
+                "city": "New York",
+                "id": 9100001487,
+                "legacyId": 0,
+                "name": "Broadcast - New York",
+                "state": "NY",
+                "timeOffsets": [
+                    {
+                        "Start": 1741503600,
+                        "End": 1762063200,
+                        "Offset": 240,
+                        "PrimeTime": 20
+                    },
+                    {
+                        "Start": 1762063200,
+                        "End": 1772953200,
+                        "Offset": 300,
+                        "PrimeTime": 20
+                    }
+                ],
+                "type": "broadcast",
+                "devices": []
+            }
+        ]
+    },
+    "links": {
+        "self": {
+            "href": "https://backend.tvguide.com/tvschedules/tvguide/serviceproviders/zipcode/10010/web"
+        }
+    },
+    "meta": {
+        "componentName": null,
+        "componentDisplayName": null,
+        "componentType": null
+    }
+}

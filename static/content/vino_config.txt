@@ -1,0 +1,132 @@
+#ur0 is default
+url0:file:///vol/content/index.html
+
+# on/off debug print of client
+CallbackDebugPrint:0
+
+# on/off javascript error print on console
+# 0:off, 1:on
+JavaScriptErrorPrintOnConsole:0
+
+# on/off javascript error print on dialog
+# 0:off, 1:on
+JavaScriptErrorPrintOnDialog:0
+
+# on/off console.log()[javascript] print on console
+# 0:off, 1:on
+ConsoleLogPrint:0
+
+# 0/1/2  TV rendering style
+# 0:Development (display DRC-screen with some debug information)
+# 1:Demo        (display only DRC-screen at center)
+# 2:Final       (display nothing)
+TVStyle:2
+
+# 0/1 Ignore Network Security Setting
+# 0:Disable (White-List and Service-Token are downloaded first.)
+# 1:Enable  (White-List and Service-Token are ignored.)
+IgnoreNetwork:0
+
+# 0/1 FriendList Contains Temporary Friend and Requested Friend or not.
+# 0:Not Contain
+# 1:Contain
+ContainTemporaryFriend:0
+
+# 0/1 Reset Navi Forcus on Drag Event
+# 0:Disable (don't reset on drag event)
+# 1:Enable  (reset on drag event)
+NaviResetOnDrag:0
+
+# Enable Accelearted Compositing
+# 0 : Disable
+# 1 : Enable
+EnableAc:1
+
+# Enable Event Lock at Page Loading
+# 0 : Disable
+# 1 : Enable
+EnableEventLock:1
+
+# User Agent Setting
+# UserAgent_String: Mozilla/5.0 (Nintendo WiiU) AppleWebKit/534.52 (KHTML, like Gecko) NX/2.2.0.8.21 vn/1.1.JP
+# Sub Font (up to 2)
+SubFont1:/vol/content/fonts/bfttf/Nintendo_RodinNTLG-DB.bfttf
+SubFont2:/vol/content/fonts/bfttf/Nintendo_RodinNTLG-M.bfttf
+
+# 0/1/2/3 WhiteList Setting.
+# 0:None    (vino does not use white-list)
+# 1:File    (vino uses white-list on file, path is written at 'WhiteList_Path')
+# 2:Network (vino uses white-list on network, path is written at 'WhiteList_Path'. in this mode, white-list is downloaded with a paticular ssl certification for client and server.)
+# 3:Release (vino uses the final environment by each region.)
+WhiteList_Use:3
+# WhiteList_Path:https://web.d1.jp.vino.wup.app.nintendo.net/whitelist
+# WhiteList_Path:https://stgweb.l1.jp.vino.wup.app.nintendo.net/whitelist
+
+# Allow 'file:' and 'http:' scheme. Finally, it is set to 'Not Allow'
+# 0:Not Allow
+# 1:Allow
+AllowDebugScheme:0
+
+# LoadingIcon
+# 0:Not Draw Icon at Pre-loading
+# 1:Draw
+PreLoadIconDraw:1
+
+# Navigation to Minus Location
+# 0:Not Allow
+# 1:Allow
+EnableNaviMinusLocation:1
+
+PreLoadIconLeft:797
+PreLoadIconTop:424
+PreLoadIconWidth:82
+PreLoadIconHeight:82
+PreLoadIconWaitingFrame:1
+
+# LayoutColor RGB (0-255)
+
+
+P_TouchEffectSBColorR:255
+P_TouchEffectSBColorG:30
+P_TouchEffectSBColorB:42
+P_TouchEffectSWColorR:255
+P_TouchEffectSWColorG:30
+P_TouchEffectSWColorB:42
+
+P_TouchEffectMBColorR:255
+P_TouchEffectMBColorG:31
+P_TouchEffectMBColorB:38
+P_TouchEffectMWColorR:255
+P_TouchEffectMWColorG:48
+P_TouchEffectMWColorB:58
+
+W_NodeFrameBColorR:255
+W_NodeFrameBColorG:41
+W_NodeFrameBColorB:76
+W_NodeFrameWColorR:255
+W_NodeFrameWColorG:122
+W_NodeFrameWColorB:128
+W_NodeFrameVTColorR:255
+W_NodeFrameVTColorG:247
+W_NodeFrameVTColorB:249
+W_NodeFrameVBColorR:255
+W_NodeFrameVBColorG:224
+W_NodeFrameVBColorB:236
+
+W_BaseBColorR:255
+W_BaseBColorG:41
+W_BaseBColorB:76
+W_BaseWColorR:255
+W_BaseWColorG:122
+W_BaseWColorB:128
+W_BaseVTColorR:255
+W_BaseVTColorG:247
+W_BaseVTColorB:249
+W_BaseVBColorR:255
+W_BaseVBColorG:224
+W_BaseVBColorB:236
+
+W_DecideWColorR:255
+W_DecideWColorG:184
+W_DecideWColorB:205
+

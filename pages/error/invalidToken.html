@@ -1,0 +1,42 @@
+<script>
+    var lang = (vino.info_getLanguage() || "en").toLowerCase();
+    var message = "";
+
+    switch (lang) {
+        case "es":
+        case "sp": // Spanish
+            message = "Tu token de servicio no es válido.\n\nPor favor, pide soporte en nuestro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "fr": // French
+            message = "Votre jeton de service est invalide.\n\nVeuillez demander de l'aide sur notre Discord :\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "it": // Italian
+            message = "Il tuo token di servizio non è valido.\n\nPer supporto, chiedi nel nostro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "de": // German
+        case "ge":
+            message = "Dein Service-Token ist ungültig.\n\nFür Support, frage in unserem Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "nl": // Dutch
+            message = "Je servicetoken is ongeldig.\n\nVoor ondersteuning, vraag in onze Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "po":
+        case "pt": // Portuguese
+            message = "Seu token de serviço é inválido.\n\nPara suporte, peça ajuda no nosso Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ru": // Russian
+            message = "Ваш сервисный токен недействителен.\n\nЗа поддержкой обращайтесь в наш Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ja": // Japanese
+        case "jp":
+            message = "あなたのサービス トークンは\n無効です。\n\nサポートについては Discord でお問い合わせください:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        default: // English
+            message = "Your service token is invalid.\n\nPlease ask for support in our Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+    }
+
+    vino.soundPlay("SE_BAR_ERROR_APPEAR");
+    alert(message);
+    vino.exitForce();
+</script>

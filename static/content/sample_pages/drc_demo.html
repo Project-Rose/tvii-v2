@@ -1,0 +1,61 @@
+﻿<html>
+    <head>
+        <title>DRC Demo Device</title>
+    </head>
+    <body>
+        <h1>DRC Demo Device</h1>
+        <div id="values"></div>
+        <script type="text/javascript">
+            var properties = [
+                "tpX", //0 to 854
+                "tpY", //0 to 480
+                "tpValidity", //0:valid data ,1:only x data is invalid ,2:only y data is invalid ,3:x,y data are both invalid
+                "tpTouch", //0:not touched,1:touched
+                "lStickX", //-1.0 to 1.0
+                "lStickY", //-1.0 to 1.0
+                "rStickX", //-1.0 to 1.0
+                "rStickY", //-1.0 to 1.0
+                "accX", //acceleraion
+                "accY", //acceleraion
+                "accZ", //acceleraion
+                "gyroX", //angular velocity (360deg/sec = 1.0)
+                "gyroY", //angular velocity (360deg/sec = 1.0)
+                "gyroZ", //angular velocity (360deg/sec = 1.0)
+                "angleX", //rotational velocity obtained by calculating the value of the angular velocity
+                "angleY", //rotational velocity obtained by calculating the value of the angular velocity
+                "angleZ", //rotational velocity obtained by calculating the value of the angular velocity
+                "dirXx", //3D attitude of the DRC.
+                "dirXy", //3D attitude of the DRC.
+                "dirXz", //3D attitude of the DRC.
+                "dirYx", //3D attitude of the DRC.
+                "dirYy", //3D attitude of the DRC.
+                "dirYz", //3D attitude of the DRC.
+                "dirZx", //3D attitude of the DRC.
+                "dirZy", //3D attitude of the DRC.
+                "dirZz", //3D attitude of the DRC.
+            ];
+
+            function update() {
+                var input = window.wiiu.gamepad.update(); //get updated input
+                var str = "<table border=1 width=50%>";
+                for (var i = 0; i < properties.length; i++) {
+                    str +=
+                        "<tr><td>" +
+                        properties[i] +
+                        "</td><td>" +
+                        input[properties[i]] +
+                        "</td></tr>";
+                }
+                str += "</table>";
+                document.getElementById("values").innerHTML = str;
+            }
+
+            if (!window.wiiu) {
+                document.getElementById("values").innerHTML =
+                    " Not Supported Browser";
+            } else {
+                setInterval("update()", 100);
+            }
+        </script>
+    </body>
+</html>

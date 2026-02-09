@@ -1,0 +1,184 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+        <style></style>
+    </head>
+    <body style="background-color: #ffffcc">
+        <script type="text/javascript">
+            <!--
+
+            var suggest_string;
+
+            window.onload = function () {
+                setInterval(function () {
+                    var state_str = "";
+                    state_str +=
+                        "vino.kbd_isAppearing():" +
+                        vino.kbd_isAppearing() +
+                        "<br>";
+                    state_str +=
+                        "vino.suggest_isOpening():" +
+                        vino.suggest_isOpening() +
+                        "<br>";
+                    state_str +=
+                        "vino.suggest_getString():" +
+                        vino.suggest_getString() +
+                        "<br>";
+                    document.getElementById("kbd_state").innerHTML = state_str;
+
+                    if (vino.suggest_isOpening()) {
+                        var new_string = vino.suggest_getString();
+
+                        if (new_string != suggest_string && new_string != "") {
+                            suggest_string = new_string;
+                            // 必ず 10 個入力する。(10個未満の場合は null を指定)
+                            vino.suggest_set(
+                                "青田 典子",
+                                "浅野 温子",
+                                "浅田 美代子",
+                                "東 ちずる",
+                                "安達 祐実",
+                                "天海 祐希",
+                                "網浜 直子",
+                                "雨宮 朋絵",
+                                "有坂 来瞳",
+                                null
+                            );
+                        }
+                    } else {
+                        suggest_string = "";
+                    }
+                }, 100);
+            };
+
+            var onchange_count = 0;
+            function onchangeCount() {
+                onchange_count++;
+                document.getElementById("onchange_count").innerHTML =
+                    "onchange count:" + onchange_count;
+            }
+
+            var onblur_count = 0;
+            function onBlurCount() {
+                onblur_count++;
+                document.getElementById("onblur_count").innerHTML =
+                    "onblur count:" + onblur_count;
+            }
+
+            function testDialog() {
+                var resultInt = vino.runTwoButtonDialog(
+                    "Right=0\nLeft=1\nCancel=-1",
+                    "Left(1)",
+                    "Right(0)"
+                );
+                console.log("TwoButtonResult=" + resultInt);
+
+                var resultBool = vino.runSingleButtonDialog(
+                    "Button Pushed=true\nCancel=false",
+                    "Button(true)"
+                );
+                console.log("SingleButtonResult=" + resultBool);
+
+                resultInt = vino.runTwoButtonDialog(
+                    "Right=0\nLeft=1\nCancel=-1",
+                    "Left(1)",
+                    "Right(0)"
+                );
+                console.log("TwoButtonResult=" + resultInt);
+
+                resultBool = vino.runSingleButtonDialog(
+                    "Button Pushed=true\nCancel=false",
+                    "Button(true)"
+                );
+                console.log("SingleButtonResult=" + resultBool);
+            }
+
+            // -->
+        </script>
+
+        Suggest<br />
+        <input
+            vino_suggest
+            type="text"
+            name="text"
+            size="30"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+        <input
+            vino_suggest
+            type="text"
+            name="guide"
+            size="5"
+            maxlength="10"
+            value="5文字幅10まで"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+        <input
+            vino_suggest
+            type="text"
+            name="guide"
+            maxlength="20"
+            minlength="5"
+            value="5文字以上20文字以下"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+
+        Normal<br />
+        <input
+            type="text"
+            name="pass"
+            vino_ok_text="いいよー"
+            size="30"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+        <input
+            type="text"
+            name="guide"
+            size="5"
+            maxlength="10"
+            value="5文字幅10まで"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+        <input
+            type="text"
+            name="guide"
+            maxlength="20"
+            minlength="5"
+            value="5文字以上20文字以下"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+        <input
+            type="number"
+            name="guide2"
+            size="5"
+            maxlength="10"
+            value="123456"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        /><br />
+
+        <textarea
+            wrap="hard"
+            onchange="onchangeCount()"
+            onblur="onBlurCount()"
+        ></textarea
+        ><br />
+
+        Dialog<br />
+        <button onclick="confirm('Confirm')">confirm('Confirm')</button><br />
+        <button onclick="alert('Alert')">alert('Alert')</button><br />
+        <button onclick="testDialog()">test Dialog</button><br />
+
+        KeyboardState
+        <div id="kbd_state"></div>
+        <div id="onchange_count">onchange count: 0</div>
+        <div id="onblur_count">onblur count: 0</div>
+    </body>
+</html>

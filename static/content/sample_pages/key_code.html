@@ -1,0 +1,40 @@
+﻿<html>
+    <head>
+        <title>DRC Demo KeyCode</title>
+    </head>
+    <body>
+        <h1>DRC Demo KeyCode</h1>
+        <div id="result"></div>
+        <script type="text/javascript">
+            var BUTTON_A = 0x41;
+            var BUTTON_B = 0x42;
+            var BUTTON_X = 0x58;
+            var BUTTON_Y = 0x59;
+            var BUTTON_L = 0x4c;
+            var BUTTON_R = 0x52;
+            var BUTTON_PLUS = 0x50;
+            var BUTTON_MINUS = 0x4d;
+
+            var BUTTON_ZL = 0x5a;
+            var BUTTON_ZR = 0x2e;
+            var BUTTON_HOME = 0x24;
+            var BUTTON_LEFT = 0x25;
+            var BUTTON_UP = 0x26;
+            var BUTTON_RIGHT = 0x27;
+            var BUTTON_DOWN = 0x28;
+
+            window.onload = function () {
+                window.document.onkeydown = function (evt) {
+                    if (evt) {
+                        var kc = evt.keyCode;
+                    } else {
+                        var kc = event.keyCode;
+                    }
+                    var chr = String.fromCharCode(kc);
+                    document.getElementById("result").innerHTML +=
+                        kc + " (" + chr + ")<br>";
+                };
+            };
+        </script>
+    </body>
+</html>

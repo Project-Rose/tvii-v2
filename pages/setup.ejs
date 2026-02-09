@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Nintendo TVii</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <link href="/css/vino.css" rel="stylesheet" />
+  <script>
+    function handleScriptError(scriptName) {
+      alert("Error!!!:" + scriptName);
+    }
+    if (!window.vino) {
+      document.write('<script src="/js/vino_emu.js"><\/script>');
+    }
+  </script>
+  <script src="/js/base64.min.js" onerror="handleScriptError('base64.min.js')"></script>
+  <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
+  <script src="/js/vino.js" onerror="handleScriptError('vino.js')"></script>
+</head>
+
+<body data-pid="<%- pid %>" data-country="<%- country %>" data-region="<%- region %>">
+  <!--preload some important assets -->
+  <img style="display: none" src="/img/button-bg.png" width="0" height="0" />
+  <img style="display: none" src="/img/button-bg-black.png" width="0" height="0" />
+  <img style="display: none" src="/img/tvii_setup_1.png" width="0" height="0" />
+
+  <div class="wrapper">
+    <div class="setup-modal-container l-stick-scroll">
+      <div class="setup-modal none" id="setup-modal-1">
+        <div class="dialog-container">
+          <h1 data-loc="vino.setup.screen1.h1"></h1>
+          <p data-loc="vino.setup.screen1.p1"></p>
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 black" data-loc="vino.close-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2" data-show="#setup-modal-2" data-hide="#setup-modal-1" data-loc="vino.continue"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" id="setup-modal-2">
+        <div class="dialog-container">
+
+          <div class="provider-info none">
+            <h1 data-loc="vino.setup.screen2.h1"></h1>
+            <p data-loc="vino.setup.screen2.p1"></p>
+          </div>
+
+          <div class="zipcode-input">
+            <input navi_target navi_no_reset type="number" maxlength="5" class="zip-usa none" />
+            <input navi_target navi_no_reset type="text" maxlength="7" class="zip-canada none" />
+          </div>
+
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-1" data-hide="#setup-modal-2" data-loc="vino.back-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2 disabled zipcode-checkconfirm" data-loc="vino.continue"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" id="setup-modal-3">
+        <div class="dialog-container">
+          <h1 data-loc="vino.setup.screen3.h1"></h1>
+          <p data-loc="vino.setup.screen3.p1"></p>
+
+          <div class="tvproviders none">
+            <div class="providertypes">
+              <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="cable" data-loc="vino.setup.screen3.t1"></a>
+              <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="satellite" data-loc="vino.setup.screen3.t2"></a>
+              <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="antenna" data-loc="vino.setup.screen3.t3"></a>
+            </div>
+          </div>
+
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-2" data-hide="#setup-modal-3" data-loc="vino.back-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2 provider-checkconfirm" data-loc="vino.continue"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" id="setup-modal-4">
+        <div class="dialog-container">
+          <h1 data-loc="vino.setup.screen4.h1"></h1>
+          <p data-loc="vino.setup.screen4.p1"></p>
+
+          <div class="channel-container"></div>
+
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-3" data-hide="#setup-modal-4" data-loc="vino.back-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2" data-show="#setup-modal-5" data-hide="#setup-modal-4" data-loc="vino.continue"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" id="setup-modal-5">
+        <div class="dialog-container">
+          <h1 data-loc="vino.setup.screen5.h1"></h1>
+          <p data-loc="vino.setup.screen5.p1"></p>
+
+          <div class="social-buttons">
+             <a href="javascript:void(0)" navi_target class="login-bsky" data-show="#bsky-login" data-hide="#setup-modal-5" data-loc="vino.setup.screen5.b2"></a>
+          </div>
+
+          <p class="about-x" data-loc="vino.setup.screen5.p2"></p>
+
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-4" data-hide="#setup-modal-5" data-loc="vino.back-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2" data-show="#setup-modal-6" data-hide="#setup-modal-5" data-loc="vino.continue"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" id="setup-modal-6">
+        <div class="dialog-container">
+          <h1 data-loc="vino.setup.screen6.h1"></h1>
+          <p data-loc="vino.setup.screen6.p1"></p>
+
+          <div class="mii">
+            <img width="128" height="128" src="" />
+          </div>
+
+          <div class="dialog-buttons">
+            <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-5" data-hide="#setup-modal-6" data-loc="vino.back-withb"></a>
+            <a href="javascript:void(0)" navi_target class="btn-2 account-creation" data-loc="vino.setup.screen6.b1"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-modal none" data-x-logged-in="false" id="x-login" data-x-oauth-token="" data-x-oauth-secret="" data-x-user-id="">
+        <div class="form">
+          <p data-loc="vino.setup.x-login.p1"></p>
+          <p class="logged-in none">
+            <span data-loc="vino.setup.x-login.p2"></span>
+            <span class="display-name"></span>
+          </p>
+          <span class="code"></span>
+        </div>
+        <div class="dialog-buttons">
+          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-5" data-hide="#x-login" data-loc="vino.back-withb"></a>
+          <a href="javascript:void(0)" navi_target class="btn-2 none" data-loc="vino.logout"></a>
+        </div>
+      </div>
+
+      <div class="setup-modal none" data-bsky-username="" data-bsky-password="" data-bsky-logged-in="false" id="bsky-login">
+        <div class="form">
+          <p data-loc="vino.setup.bsky-login.p4"></p>
+          <input type="text" navi_target navi_no_reset class="username" data-loc-attr='{"placeholder": "vino.setup.bsky-login.p1"}' />
+          <input type="password" navi_target navi_no_reset class="password" data-loc-attr='{"placeholder": "vino.setup.bsky-login.p2"}' />
+
+          <p class="logged-in none">
+            <span data-loc="vino.setup.bsky-login.p5"></span>
+            <span class="display-name"></span>
+            <span class="username"></span>
+          </p>
+        </div>
+        <div class="dialog-buttons">
+          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-show="#setup-modal-5" data-hide="#bsky-login" data-loc="vino.back-withb"></a>
+          <a href="javascript:void(0)" navi_target class="btn-2 submit-login" data-loc="vino.login"></a>
+          <a href="javascript:void(0)" navi_target class="btn-2 submit-logout none" data-loc="vino.logout"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

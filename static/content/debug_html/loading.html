@@ -1,0 +1,34 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Title Check</title>
+
+<script type="text/javascript">
+<!--
+
+function check( id )
+{
+	document.getElementById("name").innerHTML = vino.checkTitleExist(id);
+}
+//-->
+</script>
+
+</head>
+
+<form name="form1">
+<body style="background-color: #ffffcc;" onload="vino.loading_setIconRect(0, 200, 100, 100)">
+<input type="button" value="loading_start" onclick="vino.loading_setIconAppear(true)">
+<br>
+<br>
+<input type="button" value="loading_stop" onclick="vino.loading_setIconAppear(false)">
+<br>
+<br>
+<input type="button" value="loading_visible" onclick="vino.loading_setIconVisibility(true)"><br>
+<br>
+<input type="button" value="loading_invisible" onclick="vino.loading_setIconVisibility(false)"><br>
+</form>
+
+<p id="name"></p>
+
+</body>
+</html>

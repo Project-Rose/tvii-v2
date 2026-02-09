@@ -1,0 +1,103 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+        <style></style>
+    </head>
+    <body style="background-color: #ffffcc" onkeydown="key_down()">
+        <script type="text/javascript">
+            <!--
+
+            var suggest_string;
+
+            window.onload = function () {
+                setInterval(function () {
+                    if (vino.suggest_isOpening()) {
+                        var new_string = vino.suggest_getString();
+
+                        if (new_string != suggest_string && new_string != "") {
+                            suggest_string = new_string;
+                            // 必ず 10 個入力する。(10個未満の場合は null を指定)
+                            vino.suggest_set(
+                                document.getElementById("suggest0").value,
+                                document.getElementById("suggest1").value,
+                                document.getElementById("suggest2").value,
+                                document.getElementById("suggest3").value,
+                                document.getElementById("suggest4").value,
+                                document.getElementById("suggest5").value,
+                                document.getElementById("suggest6").value,
+                                document.getElementById("suggest7").value,
+                                document.getElementById("suggest8").value,
+                                document.getElementById("suggest9").value
+                            );
+                        }
+                    } else {
+                        suggest_string = "";
+                    }
+                }, 100);
+            };
+
+            function key_down() {
+                console.log("keyCode:" + event.keyCode);
+
+                switch (event.keyCode) {
+                    case 88: // X
+                        document.getElementById("text_suggest").focus();
+                        vino.wakeKeyboard();
+                        break;
+                    case 89: // Y
+                        document.getElementById("text_no_suggest").focus();
+                        vino.wakeKeyboard();
+                        break;
+                }
+            }
+
+            // -->
+        </script>
+
+        Suggest Words<br />
+        <input type="text" id="suggest0" size="10" value="青田 典子" />
+        <input type="text" id="suggest1" size="10" value="天海 祐希" />
+        <input type="text" id="suggest2" size="10" value="浅野 温子" />
+        <input type="text" id="suggest3" size="10" value="網浜 直子" />
+        <input type="text" id="suggest4" size="10" value="浅田 美代子" /><br />
+        <input type="text" id="suggest5" size="10" value="雨宮 朋絵" />
+        <input type="text" id="suggest6" size="10" value="東 ちずる" />
+        <input type="text" id="suggest7" size="10" value="有坂 来瞳" />
+        <input type="text" id="suggest8" size="10" value="安達 祐実" />
+        <input type="text" id="suggest9" size="10" value="無し" /><br />
+        <br />
+
+        Text Box with Suggest<br />
+        <input
+            vino_suggest
+            type="text"
+            id="text_suggest"
+            vino_ok_text="OK"
+            size="30"
+        />
+        ←Xボタンで開きます<br />
+        <input
+            vino_suggest
+            type="text"
+            name="guide"
+            size="5"
+            maxlength="10"
+            value="5文字幅10まで"
+        /><br />
+        <br />
+
+        Normal<br />
+        <input type="text" id="text_no_suggest" vino_ok_text="OK" size="30" />
+        ←Yボタンで開きます<br />
+        <input
+            type="text"
+            name="guide"
+            size="5"
+            maxlength="10"
+            value="5文字幅10まで"
+        /><br />
+
+        <textarea></textarea>
+    </body>
+</html>

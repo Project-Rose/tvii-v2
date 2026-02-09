@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Nintendo TVii</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <style>
+            * {
+                font-family: "nintendo_NTLG-DB_001" !important;
+            }
+
+            body {
+                color: #323232;
+                background: #e6e6e6 url(/img/bg_vino.png);
+            }
+        </style>
+        <script>
+            function handleScriptError(scriptName) {
+                alert("Failed to load script:" + scriptName);
+            }
+            if (!window.vino) {
+                document.write('<script src="/js/vino_emu.js"><\/script>');
+            }
+        </script>
+        <script
+            src="/js/jquery-3.7.1.min.js"
+            onerror="handleScriptError('jquery-3.7.1.min.js')"
+        ></script>
+        <style>
+            .cont {
+                height: 350px;
+                width: 800px;
+                display: block;
+                overflow: scroll;
+            }
+
+            .cont a {
+                width: 132px;
+                height: 132px;
+                display: block;
+                float: left;
+                border: 1px solid #000000;
+            }
+
+            .cont > div {
+                display: block;
+                width: 1200px;
+            }
+
+            .cont > div > a {
+                width: 182px;
+            }
+        </style>
+        <script>
+            setInterval(function () {
+                wiiu.gamepad.update();
+
+                if (wiiu.gamepad.isDataValid === 0) {
+                    pressedButton = null;
+                    return;
+                }
+
+                if (wiiu.gamepad.hold === 4096 && pressedButton !== 4096) {
+                    pressedButton = 4096;
+                    window.location.reload();
+                } else if (wiiu.gamepad.hold !== 4096) {
+                    pressedButton = null;
+                }
+            }, 50);
+
+            var selected = false;
+            var sumDistance = 0.0;
+            var thresh = 30.0;
+            var nowX = 0;
+            var nowY = 0;
+
+            init();
+
+            function init() {
+                vino.navi_setBaseVisibilityOnKeyEvent(true);
+            }
+
+            function reset() {
+                document.activeElement.blur();
+                vino.navi_reset();
+                selected = false;
+            }
+
+            function on(element) {
+                if (element.id == document.activeElement.id) {
+                    selected = true;
+                } else {
+                    vino.navi_reset();
+                }
+
+                sumDistance = 0.0;
+                nowX = event.screenX;
+                nowY = event.screenY;
+
+                console.log("touch:" + nowX + "," + nowY);
+            }
+
+            function move() {
+                if (sumDistance > thresh) {
+                    reset();
+                } else {
+                    sumDistance +=
+                        Math.abs(nowX - event.screenX) +
+                        Math.abs(nowY - event.screenY);
+                    nowX = event.screenX;
+                    nowY = event.screenY;
+                }
+            }
+
+            function off(element) {
+                if (sumDistance <= thresh) {
+                    element.focus();
+                    vino.navi_setToFocused(true);
+
+                    if (selected) {
+                        vino.lyt_startTouchEffect();
+                        vino.navi_decide();
+                        reset();
+                    }
+                } else {
+                    reset();
+                }
+            }
+
+            window.addEventListener("load", function () {
+                var anchors = document.querySelectorAll("a");
+                for (var i = 0; i < anchors.length; i++) {
+                    anchors[i].addEventListener("mousedown", function (e) {
+                        on(this);
+                    });
+                    anchors[i].addEventListener("mouseup", function (e) {
+                        off(this);
+                    });
+                    anchors[i].addEventListener("mousemove", function (e) {
+                        move(this);
+                    });
+                }
+
+                var cont = document.querySelector(".cont");
+                
+                var rect = cont.getBoundingClientRect();
+                vino.navi_setScissor(
+                    rect.left,
+                    rect.top,
+                    rect.width,
+                    rect.height
+                );
+            });
+
+            window.addEventListener(
+                "focus",
+                function (e) {
+                    var el = e.target;
+                    if (!el || !el.id || !vino.navi_getRect()) return;
+
+                    console.log("Focused element ID:", el.id);
+
+                    // Find nearest scrollable parent
+                    var parent = el.parentNode;
+                    while (parent && parent !== document.body) {
+                        var style = window.getComputedStyle(parent);
+                        if (
+                            style.overflow === "auto" ||
+                            style.overflow === "scroll" ||
+                            style.overflowY === "auto" ||
+                            style.overflowY === "scroll" ||
+                            style.overflowX === "auto" ||
+                            style.overflowX === "scroll"
+                        ) {
+                            break;
+                        }
+                        parent = parent.parentNode;
+                    }
+                    if (!parent || parent === document.body) return;
+
+                    // Bounding rects
+                    var parentRect = parent.getBoundingClientRect();
+                    var elRect = el.getBoundingClientRect();
+
+                    // Adjust vertical scroll
+                    if (elRect.top < parentRect.top) {
+                        parent.scrollTop -= parentRect.top - elRect.top;
+                    } else if (elRect.bottom > parentRect.bottom) {
+                        parent.scrollTop += elRect.bottom - parentRect.bottom;
+                    }
+
+                    // Adjust horizontal scroll
+                    if (elRect.left < parentRect.left) {
+                        parent.scrollLeft -= parentRect.left - elRect.left;
+                    } else if (elRect.right > parentRect.right) {
+                        parent.scrollLeft += elRect.right - parentRect.right;
+                    }
+                },
+                true
+            );
+        </script>
+    </head>
+
+    <body>
+        <h1>Navi Test</h1>
+        <div class="cont">
+            <div>
+                <a tabindex="0" id="0" class="el" navi_target></a>
+                <a tabindex="0" id="1" class="el" navi_target></a>
+                <a tabindex="0" id="2" class="el" navi_target></a>
+                <a tabindex="0" id="3" class="el" navi_target></a>
+                <a tabindex="0" id="4" class="el" navi_target></a>
+                <a tabindex="0" id="5" class="el" navi_target></a>
+            </div>
+            <div>
+                <a tabindex="0" id="6" class="el" navi_target></a>
+                <a tabindex="0" id="7" class="el" navi_target></a>
+                <a tabindex="0" id="8" class="el" navi_target></a>
+                <a tabindex="0" id="9" class="el" navi_target></a>
+                <a tabindex="0" id="10" class="el" navi_target></a>
+                <a tabindex="0" id="11" class="el" navi_target></a>
+                <a tabindex="0" id="12" class="el" navi_target></a>
+                <a tabindex="0" id="13" class="el" navi_target></a>
+            </div>
+            <a tabindex="0" id="14" class="el" navi_target></a>
+            <a tabindex="0" id="15" class="el" navi_target></a>
+            <a tabindex="0" id="16" class="el" navi_target></a>
+            <a tabindex="0" id="17" class="el" navi_target></a>
+            <a tabindex="0" id="18" class="el" navi_target></a>
+            <a tabindex="0" id="19" class="el" navi_target></a>
+            <a tabindex="0" id="20" class="el" navi_target></a>
+            <a tabindex="0" id="21" class="el" navi_target></a>
+            <a tabindex="0" id="22" class="el" navi_target></a>
+            <a tabindex="0" id="23" class="el" navi_target></a>
+            <a tabindex="0" id="24" class="el" navi_target></a>
+            <a tabindex="0" id="25" class="el" navi_target></a>
+            <a tabindex="0" id="26" class="el" navi_target></a>
+            <a tabindex="0" id="27" class="el" navi_target></a>
+            <a tabindex="0" id="28" class="el" navi_target></a>
+            <a tabindex="0" id="29" class="el" navi_target></a>
+            <a tabindex="0" id="30" class="el" navi_target></a>
+            <a tabindex="0" id="31" class="el" navi_target></a>
+            <a tabindex="0" id="32" class="el" navi_target></a>
+            <a tabindex="0" id="33" class="el" navi_target></a>
+            <div>
+                <a tabindex="0" id="34" class="el" navi_target></a>
+                <a tabindex="0" id="35" class="el" navi_target></a>
+                <a tabindex="0" id="36" class="el" navi_target></a>
+                <a tabindex="0" id="37" class="el" navi_target></a>
+                <a tabindex="0" id="38" class="el" navi_target></a>
+            </div>
+        </div>
+    </body>
+</html>

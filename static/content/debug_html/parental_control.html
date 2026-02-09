@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Application Jump Sample</title>
+    </head>
+    <body>
+        <h2>Parental Controll Sample</h2>
+        <button onclick="checkParentalControllOld()">PIN(old)</button><br />
+        <button onclick="checkParentalControllNew(1)">PIN(new)</button><br />
+        <button onclick="checkParentalControllNew(3)">PIN(new-repeat)</button
+        ><br />
+        <br />
+        <div id="PIN"></div>
+        <hr />
+        <div id="pc"></div>
+        <hr />
+    </body>
+    <script type="text/javascript">
+        function updateParentalControll() {
+            var str = "Parental Controll<br>";
+            str += "pc_isControlled:" + vino.pc_isControlled() + "<br>";
+            str +=
+                "pc_isControlledEShopPurchase:" +
+                vino.pc_isControlledEShopPurchase() +
+                "<br>";
+            str +=
+                "pc_isControlledBrowser:" +
+                vino.pc_isControlledBrowser() +
+                "<br>";
+            str +=
+                "pc_isControlledMovie:" + vino.pc_isControlledMovie() + "<br>";
+            str +=
+                "pc_isControlledFriendReg:" +
+                vino.pc_isControlledFriendReg() +
+                "<br>";
+            str +=
+                "pc_isControlledNetworkCommunication:" +
+                vino.pc_isControlledNetworkCommunication() +
+                "<br>";
+            str +=
+                "pc_getMiiverseControlLevel:" +
+                vino.pc_getMiiverseControlLevel() +
+                "<br>";
+
+            document.getElementById("pc").innerHTML = str;
+        }
+
+        function updateNGWord() {
+            var str = "NG Word<br>";
+            str += "test:" + vino.ng_checkWord("test") + "<br>";
+            str += "badwordj:" + vino.ng_checkWord("badwordj") + "<br>";
+            str += "test text:" + vino.ng_checkText("test text") + "<br>";
+            str +=
+                "badwordj text:" + vino.ng_checkText("badwordj text") + "<br>";
+            document.getElementById("ng_word").innerHTML = str;
+        }
+
+        function checkParentalControllOld() {
+            var elem = document.getElementById("PIN");
+            var str = "PIN(old-style):" + vino.pc_checkPIN();
+            elem.innerHTML = str;
+            console.log("PIN(old-style) =" + str);
+        }
+
+        function checkParentalControllNew(repeatNum) {
+            var html = "";
+            var elem = document.getElementById("PIN");
+            for (; repeatNum > 0; repeatNum--) {
+                var result = vino.pc_runPINInput();
+                var str = "";
+                switch (result) {
+                    case -1:
+                        str = "Cancel(" + result + ")";
+                        break;
+
+                    case 0:
+                        str = "NG(" + result + ")";
+                        break;
+
+                    case 1:
+                        str = "OK(" + result + ")";
+                        break;
+
+                    default:
+                        str = "error!!(" + result + ")";
+                        break;
+                }
+
+                html += " PIN(new-style):" + str + "<br>";
+                console.log("PIN(new-style) =" + str);
+            }
+            elem.innerHTML = html;
+        }
+
+        updateParentalControll();
+    </script>
+</html>

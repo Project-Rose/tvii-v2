@@ -1,0 +1,210 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <script type="text/javascript">
+            <!--
+
+            var init = false;
+
+            function IrSetup() {
+                document.getElementById("info").innerHTML =
+                    "existsTvCodeset:" +
+                    vino.ir_existsTvCodeset() +
+                    ", existsOtherCodeset:" +
+                    vino.ir_existsOtherCodeset() +
+                    ", isEmpty:" +
+                    vino.ir_isEmpty();
+
+                if (init == false) {
+                    init = true;
+                    if (vino.ir_existsTvCodeset()) {
+                        vino.ir_enableCodeset(1);
+                    } else if (vino.ir_existsOtherCodeset()) {
+                        vino.ir_enableCodeset(2);
+                    } else {
+                        window.alert("Valid codeset is not found.");
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            function IrSendOne(keycode) {
+                if (IrSetup()) {
+                    vino.ir_send(keycode, 0);
+                }
+            }
+
+            function IrChangeChannel(key0, key1, key2, key3, key4) {
+                if (IrSetup()) {
+                    vino.ir_sendPack(
+                        key0,
+                        550,
+                        key1,
+                        300,
+                        key2,
+                        300,
+                        key3,
+                        300,
+                        key4,
+                        200,
+                        -1,
+                        -1
+                    );
+                }
+            }
+
+            function SetIrSound() {
+                var mute = document.getElementById("mute").selectedIndex;
+                if (mute) {
+                    vino.ir_muteOneShotSound(true);
+                } else {
+                    vino.ir_muteOneShotSound(false);
+                }
+            }
+
+            // -->
+        </script>
+    </head>
+
+    <body>
+        <br /><br />
+        Ir Test
+
+        <br />
+        <div id="info"></div>
+
+        <br /><br />
+        <input type="button" value="INPUT" onclick="IrSendOne(52)" />
+        <input type="button" value="Vol+" onclick="IrSendOne(3)" />
+        <input type="button" value="Vol-" onclick="IrSendOne(4)" />
+        <br />
+        <input
+            type="button"
+            value="地:NHK総合"
+            onclick="IrChangeChannel(6, 49, 20, 11, 11)"
+        />
+        <input
+            type="button"
+            value="地:毎日放送"
+            onclick="IrChangeChannel(6, 49, 20, 14, 11)"
+        />
+        <input
+            type="button"
+            value="地:ABCテレビ"
+            onclick="IrChangeChannel(6, 49, 20, 16, 11)"
+        />
+        <input
+            type="button"
+            value="地:関西テレビ"
+            onclick="IrChangeChannel(6, 49, 20, 18, 11)"
+        />
+        <input
+            type="button"
+            value="地:読売テレビ"
+            onclick="IrChangeChannel(6, 49, 11, 20, 11)"
+        />
+        <br />
+        <input
+            type="button"
+            value="BS:NHK101"
+            onclick="IrChangeChannel(8, 49, 24, 33, 24)"
+        />
+        <input
+            type="button"
+            value="BS:NHK102"
+            onclick="IrChangeChannel(8, 49, 24, 33, 25)"
+        />
+        <input
+            type="button"
+            value="BS:NHK103"
+            onclick="IrChangeChannel(8, 49, 24, 33, 26)"
+        />
+        <input
+            type="button"
+            value="BS:BS日テレ"
+            onclick="IrChangeChannel(8, 49, 24, 27, 24)"
+        />
+        <input
+            type="button"
+            value="BS:ビーエス朝日"
+            onclick="IrChangeChannel(8, 49, 24, 28, 24)"
+        />
+        <input
+            type="button"
+            value="BS:BS-i"
+            onclick="IrChangeChannel(8, 49, 24, 29, 24)"
+        />
+        <input
+            type="button"
+            value="BS:BSジャパン"
+            onclick="IrChangeChannel(8, 49, 24, 30, 24)"
+        />
+        <input
+            type="button"
+            value="BS:BSフジ"
+            onclick="IrChangeChannel(8, 49, 24, 31, 24)"
+        />
+        <input
+            type="button"
+            value="BS:WOWWOW191"
+            onclick="IrChangeChannel(8, 49, 24, 32, 24)"
+        />
+        <input
+            type="button"
+            value="BS:WOWWOW192"
+            onclick="IrChangeChannel(8, 49, 24, 32, 25)"
+        />
+        <input
+            type="button"
+            value="BS:WOWWOW193"
+            onclick="IrChangeChannel(8, 49, 24, 32, 26)"
+        />
+        <input
+            type="button"
+            value="BS:twellV222"
+            onclick="IrChangeChannel(8, 49, 25, 25, 25)"
+        />
+        <br />
+        <input
+            type="button"
+            value="CS:001"
+            onclick="IrChangeChannel(9, 49, 45, 45, 36)"
+        />
+        <input
+            type="button"
+            value="CS:055"
+            onclick="IrChangeChannel(9, 49, 45, 40, 40)"
+        />
+        <input
+            type="button"
+            value="CS:100"
+            onclick="IrChangeChannel(9, 49, 36, 45, 45)"
+        />
+        <input
+            type="button"
+            value="CS:160"
+            onclick="IrChangeChannel(9, 49, 36, 41, 45)"
+        />
+        <input
+            type="button"
+            value="CS:333"
+            onclick="IrChangeChannel(9, 49, 38, 38, 38)"
+        />
+        <br /><br />
+
+        <select id="mute">
+            <option value="0" selected>Ir Sound Unmute</option>
+            <option value="1">Ir Sound Mute</option>
+        </select>
+
+        <input
+            navi_target
+            id="send_button"
+            type="button"
+            value="変更"
+            onclick="SetIrSound()"
+        />
+    </body>
+</html>

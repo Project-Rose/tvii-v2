@@ -1,0 +1,139 @@
+﻿<!doctype html>
+<html>
+    <head>
+        <title>Application Jump Sample</title>
+    </head>
+    <body>
+        <h2>Application Jump Sample</h2>
+        <button onclick="vino.jumpToBrowser('http://www.nintendo.co.jp',true)">
+            Internet Browser(with Dialog)
+        </button>
+        <button onclick="vino.jumpToBrowser('http://www.nintendo.co.jp',false)">
+            Internet Browser(no Dialog)
+        </button>
+        <br />
+        <button onclick="vino.jumpToEShop('0x0000000000000000',true)">
+            eShop(with Dialog)
+        </button>
+        <button onclick="vino.jumpToEShop('0x0000000000000000',false)">
+            eShop(no Dialog)
+        </button>
+        <br />
+        <button onclick="vino.jumpToMiiverse(true)">
+            Miiverse(with Dialog)
+        </button>
+        <button onclick="vino.jumpToMiiverse(false)">
+            Miiverse(no Dialog)
+        </button>
+        <br />
+        <button
+            onclick="vino.jumpToVod('0x000500001AAAAA00','http://www.nintendo.com',true)"
+        >
+            VOD Application (titleID=0x000500001AAAAA00)(with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToVod('0x000500001AAAAA00','http://www.nintendo.com',false)"
+        >
+            VOD Application (titleID=0x000500001AAAAA00)(no Dialog)
+        </button>
+        <br />
+        <button onclick="vino.jumpToSettingsTvRemote(true)">
+            SettingsTvRemote(with Dialog)
+        </button>
+        <button onclick="vino.jumpToSettingsTvRemote(false)">
+            SettingsTvRemote(no Dialog)
+        </button>
+        <br />
+        <button onclick="vino.exit()">Exit</button><br />
+        <br />
+        <hr />
+        <h2>Parental Controll Sample</h2>
+        <button onclick="checkParentalControllOld()">PIN(old)</button><br />
+        <button onclick="checkParentalControllNew(1)">PIN(new)</button><br />
+        <button onclick="checkParentalControllNew(10)">PIN(new-repeat)</button
+        ><br />
+        <br />
+        <div id="PIN"></div>
+        <div id="pc"></div>
+        <hr />
+        <h2>NG Word Sample</h2>
+        <div id="ng_word"></div>
+        <hr />
+    </body>
+    <script type="text/javascript">
+        function updateParentalControll() {
+            var str = "Parental Controll<br>";
+            str += "pc_isControlled:" + vino.pc_isControlled() + "<br>";
+            str +=
+                "pc_isControlledEShopPurchase:" +
+                vino.pc_isControlledEShopPurchase() +
+                "<br>";
+            str +=
+                "pc_isControlledBrowser:" +
+                vino.pc_isControlledBrowser() +
+                "<br>";
+            str +=
+                "pc_isControlledMovie:" + vino.pc_isControlledMovie() + "<br>";
+            str +=
+                "pc_isControlledFriendReg:" +
+                vino.pc_isControlledFriendReg() +
+                "<br>";
+            str +=
+                "pc_isControlledNetworkCommunication:" +
+                vino.pc_isControlledNetworkCommunication() +
+                "<br>";
+            str +=
+                "pc_getMiiverseControlLevel:" +
+                vino.pc_getMiiverseControlLevel() +
+                "<br>";
+
+            document.getElementById("pc").innerHTML = str;
+        }
+
+        function updateNGWord() {
+            var str = "NG Word<br>";
+            str += "test:" + vino.ng_checkWord("test") + "<br>";
+            str += "badwordj:" + vino.ng_checkWord("badwordj") + "<br>";
+            str += "test text:" + vino.ng_checkText("test text") + "<br>";
+            str +=
+                "badwordj text:" + vino.ng_checkText("badwordj text") + "<br>";
+            document.getElementById("ng_word").innerHTML = str;
+        }
+
+        function checkParentalControllOld() {
+            var elem = document.getElementById("PIN");
+            elem.innerHTML += " PIN(old-style):" + vino.pc_checkPIN();
+        }
+
+        function checkParentalControllNew(repeatNum) {
+            for (; repeatNum > 0; repeatNum--) {
+                var elem = document.getElementById("PIN");
+                var result = vino.pc_runPINInput();
+                var str = "";
+                switch (result) {
+                    case -1:
+                        str = "Cancel(" + result + ")";
+                        break;
+
+                    case 0:
+                        str = "NG(" + result + ")";
+                        break;
+
+                    case 1:
+                        str = "OK(" + result + ")";
+                        break;
+
+                    default:
+                        str = "error!!(" + result + ")";
+                        break;
+                }
+
+                elem.innerHTML += " PIN(new-style):" + str;
+                console.log("PIN =" + str);
+            }
+        }
+
+        updateParentalControll();
+        updateNGWord();
+    </script>
+</html>

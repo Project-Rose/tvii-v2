@@ -1,0 +1,42 @@
+<script>
+    var lang = (vino.info_getLanguage() || "en").toLowerCase();
+    var message = "";
+
+    switch (lang) {
+        case "es":
+        case "sp": // Spanish
+            message = "No estás autorizado para acceder\na esta página.\n\nPara soporte, únete a nuestro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "fr": // French
+            message = "Vous n'êtes pas autorisé à\naccéder à cet environnement.\n\nPour obtenir de l'aide, rejoignez notre Discord :\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "it": // Italian
+            message = "Non sei autorizzato ad accedere\na questo ambiente.\n\nPer supporto, unisciti al nostro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "de": // German
+        case "ge":
+            message = "Du bist nicht berechtigt, auf diese Umgebung zuzugreifen.\n\nFür Support, tritt unserem Discord bei:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "nl": // Dutch
+            message = "Je bent niet gemachtigd om\ndeze omgeving te openen.\n\nVoor ondersteuning, word lid van onze Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "po":
+        case "pt": // Portuguese
+            message = "Você não está autorizado a\nacessar este ambiente.\n\nPara suporte, junte-se ao nosso Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ru": // Russian
+            message = "У вас нет доступа к этой среде.\n\nЗа поддержкой присоединяйтесь к нашему Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ja": // Japanese
+        case "jp":
+            message = "この環境にアクセスする権限がありません。\n\nサポートについては Discord に参加してください:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        default: // English
+            message = "You are not authorized to\naccess this environment.\n\nFor support, join our Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+    }
+
+    vino.soundPlay("SE_BAR_ERROR_APPEAR");
+    alert(message);
+    vino.exitForce();
+</script>

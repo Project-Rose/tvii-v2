@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Doodle Over Screenshot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+        }
+
+        #canvasWrapper {
+            position: relative;
+            border: 1px solid #000;
+            width: 706px;
+            height: 382px;
+            margin-left: 60px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+        }
+
+        .controls {
+            margin-top: 7px;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #000;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .line-width-btn {
+            margin: 2px;
+            padding: 4px 6px;
+            cursor: pointer;
+        }
+
+        .line-width-btn.active {
+            background: #ddd;
+            border: 1px solid #000;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvasWrapper">
+        <!-- Base screenshot -->
+        <canvas id="baseCanvas" width="706" height="382"></canvas>
+        <!-- Transparent doodle layer -->
+        <canvas id="drawCanvas" width="706" height="382"></canvas>
+    </div>
+
+    <div class="controls">
+        <div id="lineWidths"><span>Line Width: </span></div>
+        <div id="colors"><span>Default Colors: </span></div>
+        <label>Custom Color: <input type="text" id="customColor" value="#000000"></label>
+        <button id="applyColor">Apply</button>
+        <button id="eraser">Eraser</button>
+        <button id="clear">Clear</button>
+        <button id="undo">Undo</button>
+        <button id="redo">Redo</button>
+        <button id="merge">Export Doodle</button>
+        <button onclick="window.location.replace('/')">Back</button>
+        <button onclick="window.location.reload()">Back</button>
+        <button onclick="vino.soundPlay('SE_COMMON_MOVE_CURSOR')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDE_SPEED')">Back</button>
+        <button onclick="vino.soundPlay('SE_CHANNEL')">Back</button>
+        <button onclick="vino.soundPlay('SE_PROGRAM_SLIDE_SPEED')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDE_TOUCH')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDER_SMALL_SCROLL_SELECT')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDER_SMALL_SCROLL')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDER_SMALL_SCROLL_END')">Back</button>
+        <button onclick="vino.soundPlay('SE_LIST_SCROLL')">Back</button>
+        <button onclick="vino.soundPlay('SE_LIST_SCROLL_END')">Back</button>
+        <button onclick="vino.soundPlay('SE_LIST_SCROLL_SELECT')">Back</button>
+        <button onclick="vino.soundPlay('SE_A_SLIDE_TOUCH')">Back</button>
+        <button onclick="vino.soundPlay('SE_APPEAR_DETAIL')">Back</button>
+        <button onclick="vino.soundPlay('SE_APPEAR_DETAIL_2')">Back</button>
+        <button onclick="vino.soundPlay('SE_APPEAR_DETAIL_3')">Back</button>
+        <button onclick="vino.soundPlay('SE_SLIDER_CHANGE')">Back</button>
+        <button onclick="vino.soundPlay('SE_CHECK')">Back</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SE1', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SE2', 30)">??</button>
+        <button onclick="vino.soundPlay('SE_RETURN')">Back</button>
+        <button onclick="vino.soundPlay('SE_CANCEL')">Back</button>
+        <button onclick="vino.soundPlay('SE_CLOSE')">Back</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_A', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_E', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_I', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_O', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_U', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_HENAHENA_N', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_A', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_E', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_I', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_O', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_U', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_N', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_SHORT_BOU', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_A', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_E', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_I', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_O', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_U', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_N', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_MII', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_MII_2', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_MII_3', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_BOU', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_EXC', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_QUE', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_NON', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_ETC', 30)">??</button>
+        <button onclick="vino.soundPlayVolume('SE_WORD_PIC', 30)">??</button>
+
+    </div>
+
+    <script>
+        (function () {
+            var baseCanvas = document.getElementById('baseCanvas');
+            var baseCtx = baseCanvas.getContext('2d');
+
+            var canvas = document.getElementById('drawCanvas');
+            var ctx = canvas.getContext('2d');
+            var drawing = false;
+            var currentColor = '#000000';
+            var erasing = false;
+            var currentLineWidth = 6;
+
+            var undoBtn = document.getElementById('undo');
+            var redoBtn = document.getElementById('redo');
+
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // --- Fake screenshot for testing ---
+            var img = new Image();
+            img.onload = function () {
+                baseCtx.drawImage(img, 0, 0, baseCanvas.width, baseCanvas.height);
+            };
+            img.src = "/img/doodletest.png";
+
+            // --- Undo/Redo State ---
+            var undoStack = [];
+            var redoStack = [];
+            var maxStates = 6;
+
+            function updateButtons() {
+                undoBtn.disabled = undoStack.length <= 1;
+                redoBtn.disabled = redoStack.length === 0;
+            }
+            function saveState() {
+                if (undoStack.length >= maxStates) {
+                    undoStack.shift();
+                }
+                undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                redoStack = [];
+                updateButtons();
+            }
+
+            function restoreState(imageData) {
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            undoBtn.onclick = function () {
+                if (undoStack.length > 1) {
+                    redoStack.push(undoStack.pop());
+                    var prevState = undoStack[undoStack.length - 1];
+                    restoreState(prevState);
+                }
+                updateButtons();
+            };
+
+            redoBtn.onclick = function () {
+                if (redoStack.length > 0) {
+                    var state = redoStack.pop();
+                    undoStack.push(state);
+                    restoreState(state);
+                }
+                updateButtons();
+            };
+
+            // --- Clear doodles only + clear history ---
+            document.getElementById('clear').onclick = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                undoStack = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+                redoStack = [];
+                updateButtons();
+            };
+
+            // --- Line Width Buttons ---
+            var widths = [1, 2, 3, 4, 6, 7, 8, 9, 10, 12, 14, 16, 20, 22, 24];
+            var widthsDiv = document.getElementById('lineWidths');
+
+            for (var i = 0; i < widths.length; i++) {
+                (function (w) {
+                    var btn = document.createElement('button');
+                    btn.textContent = w;
+                    btn.className = 'line-width-btn';
+                    if (w === currentLineWidth) btn.classList.add('active');
+                    btn.onclick = function () {
+                        currentLineWidth = w;
+                        var allBtns = document.querySelectorAll('.line-width-btn');
+                        for (var j = 0; j < allBtns.length; j++) {
+                            allBtns[j].classList.remove('active');
+                        }
+                        btn.classList.add('active');
+                        erasing = false;
+                    };
+                    widthsDiv.appendChild(btn);
+                })(widths[i]);
+            }
+
+            // --- Color Swatches ---
+            var colors = [
+                '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
+                '#FFFF00', '#FF00FF', '#00FFFF', '#808080', '#800000',
+                '#008000', '#FFA500', '#FFC0CB', '#A52A2A', '#000080'
+            ];
+            var colorsDiv = document.getElementById('colors');
+            for (var i = 0; i < colors.length; i++) {
+                var swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = colors[i];
+                swatch.setAttribute('data-color', colors[i]);
+                swatch.onclick = function () {
+                    currentColor = this.getAttribute('data-color');
+                    erasing = false;
+                };
+                colorsDiv.appendChild(swatch);
+            }
+
+            // --- Custom Color ---
+            document.getElementById('applyColor').onclick = function () {
+                var custom = document.getElementById('customColor').value;
+                if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(custom)) {
+                    currentColor = custom;
+                    erasing = false;
+                } else {
+                    alert('Invalid color format. Use #RRGGBB or #RGB.');
+                }
+            };
+
+            // --- Eraser ---
+            document.getElementById('eraser').onclick = function () {
+                erasing = true;
+            };
+
+            // --- Drawing ---
+            function getOffset(e) {
+                var rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+
+            var lastPos = null;
+
+            canvas.onmousedown = function (e) {
+                drawing = true;
+                lastPos = getOffset(e);
+            };
+
+            canvas.onmousemove = function (e) {
+                if (drawing) {
+                    var pos = getOffset(e);
+
+                    ctx.beginPath();
+                    ctx.moveTo(lastPos.x, lastPos.y);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.lineWidth = currentLineWidth;
+
+                    if (erasing) {
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.strokeStyle = 'rgba(0,0,0,1)';
+                    } else {
+                        ctx.globalCompositeOperation = 'source-over';
+                        ctx.strokeStyle = currentColor;
+                    }
+
+                    ctx.stroke();
+                    ctx.closePath();
+
+                    lastPos = pos;
+                }
+            };
+
+            document.onmouseup = function () {
+                if (drawing) {
+                    drawing = false;
+                    saveState();
+                }
+            };
+
+            document.onmouseup = function () {
+                if (drawing) {
+                    drawing = false;
+                    saveState();
+                }
+            };
+
+            // --- Merge & Export ---
+            document.getElementById('merge').onclick = function () {
+                var merged = document.createElement('canvas');
+                merged.width = baseCanvas.width;
+                merged.height = baseCanvas.height;
+                var mctx = merged.getContext('2d');
+
+                mctx.drawImage(baseCanvas, 0, 0);
+                mctx.drawImage(canvas, 0, 0);
+
+                var dataURL = merged.toDataURL("image/png");
+                var img = new Image();
+                img.src = dataURL;
+                document.body.appendChild(img);
+            };
+
+            // --- Save initial blank state ---
+            saveState();
+        })();
+    </script>
+</body>
+
+</html>
