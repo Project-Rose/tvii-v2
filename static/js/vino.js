@@ -1754,7 +1754,7 @@ function initVinoHome() {
 
     $(".header .menu").on("click", function (e) {
         e.preventDefault();
-        alert("This option is not available yet.");
+        alert("This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
     })
 
     $(".header .tabs>a").on("click", function () {
@@ -1766,7 +1766,7 @@ function initVinoHome() {
             vino.soundPlayVolume("SE_TAB_SELECT", 30);
             initLiveTab();
         }
-        return alert("This option is not available yet.");
+        return alert("This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
 
         $(".header .tabs>a").removeClass("selected");
         $(this).addClass("selected");
@@ -2918,7 +2918,7 @@ function initVinoHome() {
                         img = "/image/show/400x225/" + details.program.showPicture;
                     }
                 }
-                
+
                 if (img) {
                     det.find(".program-image>img").attr("src", "/images/cdn/tvp" + img)
                 }
@@ -3016,6 +3016,7 @@ function initVinoHome() {
 
                                 var $imgDiv = $("<div>").css("background-image", "url(" + bgUrl + ")");
 
+
                                 var $name = $("<span>").text(member.name);
 
                                 $a.append($imgDiv).append($name);
@@ -3032,7 +3033,7 @@ function initVinoHome() {
                                     var sound = sounds[Math.floor(Math.random() * sounds.length)];
                                     vino.soundPlayVolume(sound, 60);
 
-                                    alert("The function to see actor info\nis not available yet.");
+                                    alert("The function to see actor info\nis not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
                                 });
 
                                 det.find(".actor-container").append($a);
@@ -3787,6 +3788,10 @@ function initVinoHome() {
         var username = $("<span>")
             .addClass("username")
             .text(screenName);
+
+        if (screenName === "Project Rosé Staff") {
+            username.css("background", "#f05b00");
+        }
 
         var date = $("<span>")
             .addClass("date")
