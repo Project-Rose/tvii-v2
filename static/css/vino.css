@@ -146,7 +146,7 @@ button {
 
 .favorite {}
 
-.header.pr-details>span,
+.header.pr-details>p,
 .header.miiverse>span {
     white-space: nowrap;
     color: #fff;
@@ -157,6 +157,28 @@ button {
     text-overflow: ellipsis;
     overflow: hidden;
     text-align: center;
+}
+
+.header.pr-details>p span {
+    display: inline-block;
+}
+
+.header.pr-details>p.marquee span {
+    text-overflow: initial;
+    text-align: left;
+    padding-left: 100%;
+    /* start outside right */
+    -webkit-animation: marqueeScroll 18s linear infinite;
+}
+
+@-webkit-keyframes marqueeScroll {
+    from {
+        -webkit-transform: translateX(0);
+    }
+
+    to {
+        -webkit-transform: translateX(-100%);
+    }
 }
 
 .header.miiverse>span {
@@ -876,7 +898,7 @@ button {
     margin: auto;
     min-height: 180px;
     margin-top: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     border-radius: 10px;
     background: #ffffff;
     border: 2px solid #acacac;
@@ -1046,6 +1068,35 @@ button {
     border-radius: 10px;
     background: #f3f3f3;
     border: 2px solid #b0b0b0;
+}
+
+.channel-search-container p {
+    padding: 10px 35px !important;
+}
+
+.channel-search-container input:last-child {
+    margin-bottom: 40px;
+}
+
+.help-button {
+    position: absolute;
+    top: 13px;
+    right: 16px;
+    background: url(/img/bg_help.png) 0 0 no-repeat;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.channel-search-container input {
+    display: block;
+    margin: auto;
+    border-radius: 5px;
+    border: 2px solid #a3a3a3;
+    width: 560px;
+    height: 50px;
+    padding: 0 12px;
 }
 
 .tvproviders .providertypes {

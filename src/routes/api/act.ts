@@ -135,6 +135,7 @@ router.post(
 
             // Extract the user's IP
             let ip =
+                req.headers["cf-connecting-ip"] ||
                 req.headers["x-forwarded-for"] ||
                 req.connection.remoteAddress ||
                 req.ip;
@@ -226,23 +227,46 @@ router.post(
             try {
                 favorites = JSON.parse(raw);
             } catch (e) {
-                return res.status(400).json({ status: "error", error: "Invalid favorite_channels JSON" });
+                return res.status(400).json({
+                    status: "error",
+                    error: "Invalid favorite_channels JSON"
+                });
             }
 
             if (Array.isArray(favorites) && favorites.length !== 0) {
                 var now = new Date().toISOString();
 
-                var rows = [];
-                for (var i = 0; i < favorites.length; i++) {
-                    rows.push({
-                        create_time: now,
-                        pid: token.pid,
-                        channel_id: favorites[i]
-                    });
-                }
+                // remove duplicates inside request itself
+                favorites = [...new Set(favorites)];
 
                 try {
-                    await db("favorite_channels").insert(rows);
+                    // get all existing favorites for this user
+                    var existingRows = await db("favorite_channels")
+                        .where("pid", token.pid)
+                        .select("channel_id");
+
+                    // convert to fast lookup set
+                    var existingSet = new Set(
+                        existingRows.map(function (r) { return r.channel_id; })
+                    );
+
+                    // filter only new ones
+                    var rows = [];
+                    for (var i = 0; i < favorites.length; i++) {
+                        if (!existingSet.has(favorites[i])) {
+                            rows.push({
+                                create_time: now,
+                                pid: token.pid,
+                                channel_id: favorites[i]
+                            });
+                        }
+                    }
+
+                    // insert only if something new exists
+                    if (rows.length > 0) {
+                        await db("favorite_channels").insert(rows);
+                    }
+
                 } catch (err) {
                     console.error(err);
                     return res.status(500).json({
@@ -265,147 +289,6 @@ router.post(
         }
     }
 );
-
-router.post(
-    "/checkLogIn",
-    async (req: Request, res: Response): Promise<any> => {
-        try {
-            const token = parseServiceToken(req);
-
-            // Fetch account + settings in one query
-            const account = await db("account")
-                .leftJoin("settings", "settings.pid", "account.pid")
-                .select(
-                    "account.*",
-                    "settings.pid as setting_pid",
-                    "settings.tv_provider_id"
-                )
-                .where({
-                    "account.pid": token.pid,
-                    "account.serial_number": token.serial_number,
-                    "account.access_key": token.access_key,
-                })
-                .first();
-
-            const country = token.country;
-
-            if (!account) {
-                return res.status(200).json({
-                    status: "no_account_yet",
-                    profile: { country_code: country },
-                });
-            }
-
-            let utc_offset = account.utc_offset;
-
-            // Collect only changed values for update
-            const updateValues: any = {};
-            if (account.country !== country) updateValues.country = country;
-
-            const now = new Date();
-            const lastUpdate = account.last_data_update
-                ? new Date(account.last_data_update)
-                : new Date(0);
-
-            const oneHour = 60 * 60 * 1000;
-            if (now.getTime() - lastUpdate.getTime() > oneHour) {
-                try {
-                    const updateMiiData = await fetch(
-                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${token.pid}&api_id=1&force_refresh=1`
-                    );
-
-                    if (updateMiiData.ok) {
-                        const PIDData = await updateMiiData.json() as any;
-                        const mii_name = PIDData.name;
-                        const mii_data = PIDData.data;
-
-                        const mii = new Mii(Buffer.from(mii_data, "base64"));
-                        const mii_bday = mii.birthDay + "/" + mii.birthMonth;
-
-                        // Extract IP
-                        let ip =
-                            req.headers["x-forwarded-for"] ||
-                            req.connection.remoteAddress ||
-                            req.ip;
-
-                        if (typeof ip === "string" && ip.includes(",")) {
-                            ip = ip.split(",")[0];
-                        }
-                        if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                            ip = ip.substring(7);
-                        }
-
-                        const ipReq = await fetch(`https://ipwho.is/${ip}`);
-                        const ipInfo = await ipReq.json() as any;
-
-                        if (
-                            ipInfo &&
-                            ipInfo.success &&
-                            ipInfo.timezone &&
-                            typeof ipInfo.timezone.offset === "number"
-                        ) {
-                            utc_offset = ipInfo.timezone.offset;
-                        }
-
-                        // Batch all updates together
-                        Object.assign(updateValues, {
-                            mii_name,
-                            mii_data,
-                            mii_bday,
-                            utc_offset,
-                            last_data_update: new Date().toISOString(),
-                        });
-
-                        console.log(
-                            `PNID Data and UTC offset updated for PID: ${token.pid}`
-                        );
-                    } else {
-                        // Just bump timestamp if fetch failed
-                        updateValues.last_data_update = new Date().toISOString();
-                    }
-                } catch (err) {
-                    console.warn("Mii/IP update failed:", err);
-                    updateValues.last_data_update = new Date().toISOString();
-                }
-            }
-
-            // Apply updates if needed
-            if (Object.keys(updateValues).length > 0) {
-                await db("account")
-                    .where({
-                        pid: token.pid,
-                        serial_number: token.serial_number,
-                        access_key: token.access_key,
-                    })
-                    .update(updateValues);
-            }
-
-            if (!account.pid) {
-                return res.status(400).json({
-                    status: "error",
-                    error: "Could not get user settings.",
-                });
-            }
-
-            res.status(200).json({
-                status: "verified",
-                profile: {
-                    utc_offset,
-                    user_id: account.pid,
-                    tv_provider_id: account.tv_provider_id,
-                    country_code: country,
-                },
-            });
-        } catch (error) {
-            console.error("/checkLogIn error:", error);
-            res.status(500).json({
-                status: "error",
-                error: "Internal server error.",
-            });
-        }
-    }
-);
-
 
 router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
     console.log("hi aroma plugin", req);

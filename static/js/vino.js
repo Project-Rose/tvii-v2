@@ -145,17 +145,17 @@ var tvii = {
                     var $el = $(el);
                     var els = tvii.getLoc($el.attr("data-loc"));
                     $el.html(els);
-                    $el.removeAttr("data-loc");
                 });
 
             $("body")
                 .find("[data-loc-attr]")
                 .each(function (index, el) {
-                    var a = JSON.parse($(el).attr("data-loc-attr"));
+                    var $el = $(el);
+                    var a = JSON.parse($el.attr("data-loc-attr"));
 
                     for (var key in a) {
                         var value = a[key];
-                        $(el).attr(key, tvii.getLoc(value));
+                        $el.attr(key, tvii.getLoc(value));
                     }
                 });
         }
@@ -311,9 +311,11 @@ var tvii = {
         },
     },
     getLoc: function (locID) {
-        var localizedString = tvii.locFile[locID] || locID;
+        var localizedString =
+            tvii.locFile && tvii.locFile[locID] != null
+                ? tvii.locFile[locID]
+                : locID;
 
-        // Loop through extra parameters starting from index 1
         for (var i = 1; i < arguments.length; i++) {
             localizedString = localizedString.replace("%s", arguments[i]);
         }
@@ -396,51 +398,20 @@ var tvii = {
         });
     },
     getLang: function () {
+        //THIS JS IS FOR USA TVII, DOES NOT HANDLE LOCALES
+        //HERE, WE ASSUME FR = CANADIAN FRENCH
+        //EN = ENGLISH USA
+        //ES = SPANISH 419
         var lang = vino.info_getLanguage().toLowerCase();
-        var country = ($("body").attr("data-country") || vino.info_getCountry()).toUpperCase();
-
         // normalize language codes
         switch (lang) {
-            case "jp": lang = "ja"; break;
             case "sp": lang = "es"; break;
-            case "ge": lang = "de"; break;
-            case "du": lang = "nl"; break;
-            case "po": lang = "pt"; break;
             case "fr": lang = "fr"; break;
-            case "it": lang = "it"; break;
             case "en": lang = "en"; break;
-            case "ru": lang = "ru"; break;
             default: lang = "en"; // fallback
         }
 
-        // map countries for 419 (Latin America)
-        const latinAmerica = ["MX", "PE", "AR", "CL", "CO", "VE", "EC", "UY", "BO", "PY", "CR", "PA", "DO", "GT", "HN", "NI", "SV"];
-        if (lang === "es" && latinAmerica.indexOf(country) !== -1) {
-            country = "419"; // special ES-Latin America
-        }
-
-        // fix French for Canada
-        if (lang === "fr") {
-            country = (country === "CA") ? "CA" : "FR";
-        }
-
-        // Portuguese variants
-        if (lang === "pt") {
-            country = (country === "BR") ? "BR" : "PT";
-        }
-
-        // English variants
-        if (lang === "en") {
-            country = (country === "GB") ? "GB" : "US";
-        }
-
-        // Italian, Dutch, Russian, Japanese defaults
-        if (lang === "it") country = "IT";
-        if (lang === "nl") country = "NL";
-        if (lang === "ru") country = "RU";
-        if (lang === "ja") country = "JP";
-
-        return lang + "-" + country;
+        return lang;
     },
     getQuery: function (param, isSearch) {
         var queryString;
@@ -739,6 +710,67 @@ var tvii = {
             }
         }
 
+        xhr.ontimeout = function () {
+            if (callbackError) {
+                callbackError(xhr);
+            }
+            xhr = null;
+        };
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    if (callbackSuccess) {
+                        callbackSuccess(
+                            xhr.responseText || "",
+                            xhr
+                        );
+                    }
+                } else {
+                    if (callbackError) {
+                        callbackError(xhr);
+                    }
+                }
+                xhr = null;
+            }
+        };
+
+        if (type === "POST" && formData) {
+            xhr.send(formData);
+        } else {
+            xhr.send();
+        }
+        return xhr;
+    },
+    sendXHRNoTimeout: function (
+        type,
+        url,
+        callbackSuccess,
+        callbackError,
+        headers,
+        formData
+    ) {
+
+        var xhr = new XMLHttpRequest();
+        xhr.open(type, url);
+        //xhr.timeout = 15000;
+
+        if (headers) {
+            for (var i = 0; i < headers.length; i++) {
+                var headerParts = headers[i].split(":");
+                var headerName = headerParts[0].trim();
+                var headerValue = headerParts[1].trim();
+                xhr.setRequestHeader(headerName, headerValue);
+            }
+        }
+
+        xhr.ontimeout = function () {
+            if (callbackError) {
+                callbackError(xhr);
+            }
+            xhr = null;
+        };
+
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4) {
                 if (xhr.status == 200) {
@@ -774,7 +806,7 @@ var tvii = {
         callbackSuccess,
         callbackFailure
     ) {
-        return tvii.sendXHR("GET", "/api/v1/providers/lineup/" +
+        return tvii.sendXHRNoTimeout("GET", "/api/v1/providers/lineup/" +
             tvii.getCountry() +
             "/" +
             lineup +
@@ -793,16 +825,16 @@ var tvii = {
     },
     requestProgramDetails: function (
         id,
-        channelId,
+        channelNum,
         scheduleDate,
         callbackSuccess,
         callbackFailure
     ) {
-        return tvii.sendXHR(
+        return tvii.sendXHRNoTimeout(
             "GET",
             "/api/v1/providers/info" +
             "?listingId=" + id +
-            "&channelId=" + channelId +
+            "&channelNum=" + channelNum +
             "&date=" + scheduleDate +
             "&country=" + tvii.getCountry() +
             "&tz_name=" + tvii.getTVProviderTZ() +
@@ -1081,7 +1113,7 @@ var tvii = {
 
 function initVinoSetup() {
     tvii.templates.setUpLocHTML();
-    tvii.BGMId = vino.soundPlayVolume("SE_APP_START_SUB", 30);
+    tvii.BGMId = vino.soundPlayVolume("SE_APP_START_SUB", 20);
 
     var savedCode;
     var savedProviderId;
@@ -1105,6 +1137,7 @@ function initVinoSetup() {
     }
 
     $("a, input").on("click", function (e) {
+        if ($(this).hasClass("disabled")) return;
         if (e.originalEvent) {
             if (!vino.navi_getRect()) {
                 vino.lyt_startTouchEffect();
@@ -1183,9 +1216,18 @@ function initVinoSetup() {
         //Not supposed to be able to trigger this func without having selected a provider.
         var providerSelA = $(".tvproviders").find(
             ".selected[data-provider-id]"
-        );
+        ).first();
         var tvProviderId = providerSelA.attr("data-provider-id");
         var tvProviderTz = providerSelA.attr("data-provider-tz");
+
+        //Checks to avoid problems....
+        if (!tvProviderId || !tvProviderId.length) {
+            accountCreating = false;
+            return alert(tvii.getLoc("vino.setup.error.no_provider_id"));
+        } else if (!tvProviderTz || !tvProviderTz.length) {
+            accountCreating = false;
+            return alert(tvii.getLoc("vino.setup.error.no_provider_tz"));
+        }
 
         var form = new FormData();
 
@@ -1214,7 +1256,6 @@ function initVinoSetup() {
                 vino.soundStop(tvii.BGMId);
                 tvii.BGMId = null;
                 accountCreating = false;
-
                 window.location.replace("index.html");
             },
             function (request) {
@@ -1254,6 +1295,7 @@ function initVinoSetup() {
     }
 
     var isBskyRequesting = false;
+
     function logInBsky() {
         if (isBskyRequesting) return;
         //Actually only checks if the account is valid.
@@ -1267,6 +1309,7 @@ function initVinoSetup() {
         }
 
         isBskyRequesting = true;
+        vino.loading_setIconAppear(true);
 
         var request = new XMLHttpRequest();
         request.timeout = 15000;
@@ -1276,7 +1319,19 @@ function initVinoSetup() {
         form.append("password", password);
 
         request.open("POST", "/api/v1/socials/BSLoginCheck");
+        request.onerror = function () {
+            vino.loading_setIconAppear(false);
+            isBskyRequesting = false;
+        };
+
+        request.ontimeout = function () {
+            vino.loading_setIconAppear(false);
+            isBskyRequesting = false;
+        };
+
         request.onload = function () {
+            vino.loading_setIconAppear(false);
+
             if (request.status === 200) {
                 var res = JSON.parse(request.responseText);
                 if (!res.active) {
@@ -1297,13 +1352,11 @@ function initVinoSetup() {
 
                 BAfterLogInReturnTimeout = setTimeout(function () {
                     changeSetupModal($("#setup-modal-5"), bModal);
-                }, 1200);
-
-                setTimeout(function () {
                     isBskyRequesting = false;
-                }, 0)
+                }, 1200);
             } else {
                 tvii.alert(tvii.getLoc("vino.setup.bsky-login.p6"));
+                isBskyRequesting = false;
             }
         };
         request.send(form);
@@ -1342,19 +1395,20 @@ function initVinoSetup() {
             providerA.attr("data-provider-id", provider.lineup_id);
             providerA.attr("data-provider-tz", provider.tz_name);
             providerA.attr("navi_target", "");
+            providerA.attr("navi_no_reset", "");
             providerA.attr("tabindex", "0");
             providerA.attr("data-provider-type", provider.type === "other" ? "cable" : provider.type);
 
             var normalizedType;
 
             if (provider.type.indexOf("cable") !== -1) {
-                normalizedType = "Cable";
+                normalizedType = tvii.getLoc("vino.setup.tvtypes.cable");
             } else if (provider.type.indexOf("other") !== -1) {
-                normalizedType = "Internet-based cable";
+                normalizedType = tvii.getLoc("vino.setup.tvtypes.iptv");
             } else if (provider.type.indexOf("antenna") !== -1) {
-                normalizedType = "Antenna";
+                normalizedType = tvii.getLoc("vino.setup.tvtypes.antenna");
             } else if (provider.type.indexOf("satellite") !== -1) {
-                normalizedType = "Satellite";
+                normalizedType = tvii.getLoc("vino.setup.tvtypes.satellite");
             }
 
             var providerN = $("<p>");
@@ -1372,17 +1426,24 @@ function initVinoSetup() {
         $(".tvproviders .providertypes>a").removeClass("selected");
         $(".tvproviders .providertypes>a:first-child").addClass("selected");
 
-        tvii.setActualClickListener($(".tvproviders>a"), function () {
-            $(this).focus();
+        tvii.setActualClickListener($(".tvproviders>a"), function (evt) {
+            var t = $(this);
             if (!vino.navi_getRect()) {
                 vino.lyt_startTouchEffect();
+                // get position relative to document
+                var offset = t.offset();
+
+                var left = offset.left;
+                var top = offset.top;
+                var width = t.outerWidth();
+                var height = t.outerHeight();
+
+                // call effect with coords
+                vino.lyt_startTouchNodeEffect(left, top, width, height);
             }
-            vino.navi_setToFocused(true);
             vino.soundPlayVolume("SE_CHECK", 30);
             $(".tvproviders>a").removeClass("selected");
-            $(this).addClass("selected");
-            vino.navi_decide();
-            document.activeElement.blur();
+            t.addClass("selected");
         });
 
         $(".tvproviders>a").addClass("none");
@@ -1416,7 +1477,7 @@ function initVinoSetup() {
         savedCode = code;
         var endpoint = isCA ? "/api/v1/providers/countries/CA/" + code : "/api/v1/providers/countries/US/" + code
 
-        tvii.sendXHR(
+        tvii.sendXHRNoTimeout(
             "GET",
             endpoint,
             function (responseText) {
@@ -1437,16 +1498,86 @@ function initVinoSetup() {
 
     }
 
-    function setUpFavoriteCandidates(candidates) {
-        var imageQueue = [];
+    $(".help-button").on("click", function () {
+        vino.soundPlayVolume("SE_HELP", 30);
+        alert(tvii.getLoc("vino.setup.help." + $(this).attr("data-help")))
+    })
 
-        for (var i = 0; i < candidates.data.length; i++) {
+    $(".channel-search-container .chnumber").on("change", function () {
+        var text = $(this).val();
+
+        var results = getChannelArrayByQuery(text, 2);
+        setUpFavoriteCandidates(results, true);
+
+        var $container = $(".channel-container");
+
+        var $match = $container
+            .find("[data-channel-number]")
+            .filter(function () {
+                return $(this).attr("data-channel-number") == text;
+            })
+            .first();
+
+        scrollContainerToElement($(".setup-modal-container"), $match);
+    });
+
+    $(".channel-search-container .chname").on("change", function () {
+        var text = $(this).val();
+
+        var results = getChannelArrayByQuery(text, 1);
+        setUpFavoriteCandidates(results, true);
+
+        var $container = $(".channel-container");
+
+        var $match = $container
+            .find("[data-channel-full-name]")
+            .filter(function () {
+                return $(this).attr("data-channel-full-name") === text;
+            })
+            .first();
+
+        scrollContainerToElement($(".setup-modal-container"), $match);
+    });
+
+    function scrollContainerToElement($container, $el) {
+        if (!$el.length) return;
+
+        var containerTop = $container.scrollTop();
+        var containerOffset = $container.offset().top;
+        var elementOffset = $el.offset().top;
+
+        // position of element inside container
+        var scrollTo = containerTop + (elementOffset - containerOffset);
+
+        $container.stop(true).animate({
+            scrollTop: scrollTo
+        }, 200);
+    }
+
+
+    var cacheCandidates = null;
+
+    function setUpFavoriteCandidates(candidates, addMoreMode) {
+        if (!addMoreMode) {
+            cacheCandidates = candidates.data;
+        }
+        var imageQueue = [];
+        var maxChanAtOnce = 30;
+        var max = Math.min(candidates.data.length, maxChanAtOnce);
+
+        for (var i = 0; i < max; i++) {
             var option = candidates.data[i];
+            if ($('.channel-container [data-channel-number="' + option.number + '"]').length) {
+                continue; // skip duplicate
+            }
             var optionA = $("<a>");
             optionA.attr("data-channel-id", option.station);
             optionA.attr("navi_target", "");
+            optionA.attr("navi_no_reset", "");
             optionA.attr("tabindex", "0");
+            optionA.attr("data-channel-full-name", option.name);
             optionA.attr("data-channel-full-id", option.id);
+            optionA.attr("data-channel-number", option.number);
 
             var optionI = $("<img>");
             // set placeholder FIRST
@@ -1479,6 +1610,33 @@ function initVinoSetup() {
             $(".channel-container").append(optionA);
         }
 
+        tvii.setActualClickListener($(".channel-container>a"), function () {
+            var t = $(this);
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+                // get position relative to document
+                var offset = t.offset();
+
+                var left = offset.left;
+                var top = offset.top;
+                var width = t.outerWidth();
+                var height = t.outerHeight();
+
+                // call effect with coords
+                vino.lyt_startTouchNodeEffect(left, top, width, height);
+            }
+
+            vino.soundPlayVolume("SE_CHECK", 30);
+
+            if (t.hasClass("fav")) {
+                t.removeClass("fav");
+                t.prev().removeClass("favprev");
+            } else {
+                t.addClass("fav");
+                t.prev().addClass("favprev");
+            }
+        });
+
         var idx = 0;
         function loadNextImage() {
             if (idx >= imageQueue.length) return;
@@ -1490,30 +1648,139 @@ function initVinoSetup() {
         }
 
         loadNextImage();
-
-        tvii.setActualClickListener($(".channel-container>a"), function () {
-            var t = $(this);
-            t.focus();
-
-            if (!vino.navi_getRect()) {
-                vino.lyt_startTouchEffect();
-            }
-
-            vino.navi_setToFocused(true);
-            vino.soundPlayVolume("SE_CHECK", 30);
-
-            if (t.hasClass("fav")) {
-                t.removeClass("fav");
-                t.prev().removeClass("favprev");
-            } else {
-                t.addClass("fav");
-                t.prev().addClass("favprev");
-            }
-
-            vino.navi_decide();
-            document.activeElement.blur();
-        });
     }
+
+    //Suggest keyboard for the favorite channels !!!!!!!!
+
+    var suggest_string = "";
+
+    function scoreMatch(text, query) {
+        text = text.toLowerCase();
+        query = query.toLowerCase();
+
+        if (text.indexOf(query) === 0) return 100; // starts with
+        if (text.indexOf(query) !== -1) return 50; // contains
+
+        return 0;
+    }
+
+    //for autocomplete
+    function getChannelSuggestions(query) {
+        if (!query) {
+            return [];
+        }
+
+        var results = [];
+
+        for (var i = 0; i < cacheCandidates.length; i++) {
+            var channel = cacheCandidates[i];
+            if (!channel.name) continue;
+
+            var score = scoreMatch(channel.name, query);
+
+            if (score > 0) {
+                results.push({
+                    name: channel.name,
+                    score: score
+                });
+            }
+        }
+
+        // best matches first
+        results.sort(function (a, b) {
+            return b.score - a.score;
+        });
+
+        // return only names (max 10)
+        var names = [];
+        for (var i = 0; i < results.length && i < 10; i++) {
+            names.push(results[i].name);
+        }
+
+        return names;
+    }
+
+    // for actual input change
+    function getChannelArrayByQuery(query, type) {
+        if (!query) {
+            return { data: [] };
+        }
+
+        var results = [];
+
+        for (var i = 0; i < cacheCandidates.length; i++) {
+            var channel = cacheCandidates[i];
+
+            if (type === 1) {
+                if (!channel.name) continue;
+            } else {
+                if (!channel.number) continue;
+            }
+
+            var score;
+            if (type === 1) {
+                score = scoreMatch(channel.name, query);
+            } else {
+                score = scoreMatch(channel.number, query);
+            }
+
+            if (score > 0) {
+                results.push({
+                    channel: channel,
+                    score: score
+                });
+            }
+        }
+
+        // best matches first
+        results.sort(function (a, b) {
+            return b.score - a.score;
+        });
+
+        return {
+            data: results.map(function (r) {
+                return r.channel;
+            })
+        };
+    }
+
+    setInterval(function () {
+        if (vino.suggest_isOpening()) {
+            var new_string = vino.suggest_getString();
+
+            if (new_string == "") {
+                vino.suggest_reset();
+            }
+
+            if (new_string !== suggest_string) {
+                suggest_string = new_string;
+
+                var matches = getChannelSuggestions(new_string);
+
+                // always send exactly 10 params
+                var args = [];
+                for (var i = 0; i < 10; i++) {
+                    args.push(matches[i] || null);
+                }
+
+                vino.suggest_set(
+                    args[0],
+                    args[1],
+                    args[2],
+                    args[3],
+                    args[4],
+                    args[5],
+                    args[6],
+                    args[7],
+                    args[8],
+                    args[9]
+                );
+            }
+        } else {
+            suggest_string = "";
+        }
+    }, 100);
+
 
     function requestChannelsToFavorite() {
         var providerId = $(".tvproviders>a.selected").attr("data-provider-id")
@@ -1524,18 +1791,21 @@ function initVinoSetup() {
             $(".channel-container>a").remove();
         }
 
+        $(".channel-search-container .chname").val("");
+        $(".channel-search-container .chnumber").val("");
+
         vino.loading_setIconAppear(true);
 
         savedProviderId = providerId;
 
         var endpoint = "/api/v1/providers/countries/" + (isCA ? "CA" : "US") + "/" + providerId + "/channels?tz_name=" + providerTz;
 
-        tvii.sendXHR(
+        tvii.sendXHRNoTimeout(
             "GET",
             endpoint,
             function (responseText) {
                 var channel_list = JSON.parse(responseText);
-                setUpFavoriteCandidates(channel_list);
+                setUpFavoriteCandidates(channel_list, false);
                 vino.loading_setIconAppear(false);
             },
             function () {
@@ -2193,7 +2463,7 @@ function initVinoHome() {
         }
 
         // SPANISH: "Sáb. 1/11, 18:30 - 18:37"
-        if (lang === "es-419") {
+        if (lang === "es") {
             return (
                 dayName + ". " +
                 day + "/" + month + ", " +
@@ -2202,7 +2472,7 @@ function initVinoHome() {
         }
 
         // FRENCH: "Sam. 1/11, 18 h 30 - 18 h 37"
-        if (lang === "fr-CA") {
+        if (lang === "fr") {
             return (
                 dayName + ". " +
                 day + "/" + month + ", " +
@@ -2336,16 +2606,23 @@ function initVinoHome() {
             lastProgramId === programId &&
             lastChannelNum === channelNum
         ) {
+            console.log(lastChannelNum)
+            console.log(channelNum)
             console.log("same num, and prog");
             return;
         }
 
-        var logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
-
-        // Replace the part between "station/" and "/v2" with "60x34"
-        logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
-
         var chlogo = programDetails.find(".chlogo");
+
+        if (program.attr("data-chlogo") && program.attr("data-chlogo") != "null") {
+            var logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
+
+            // Replace the part between "station/" and "/v2" with "60x34"
+            logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
+        } else {
+            logoSrc = "/img/noimg.png"
+        }
+
         chlogo.off("error").on("error", function () {
             chlogo.hide();
         });
@@ -2366,7 +2643,7 @@ function initVinoHome() {
 
         progPrevReq = tvii.requestProgramDetails(
             programId,
-            channelId,
+            channelNum,
             programInfoDate,
             function (details) {
                 var programListingID = details.program.listingId;
@@ -2386,11 +2663,15 @@ function initVinoHome() {
                 var hasCC = details.program.isCC;
                 var programDuration = details.program.duration;
 
-                var otherDetail = (hasYear ? details.program.year + " · " : "") +
-                    (hasTVRating ? details.program.rating + " · " : "") +
-                    (hasCC ? "CC · " : "") +
-                    (hasShowType ? details.program.showType + " · " : "") +
-                    (programDuration + "min");
+                var parts = [];
+
+                if (hasYear) parts.push(details.program.year);
+                if (hasTVRating) parts.push(details.program.rating);
+                if (hasCC) parts.push("CC");
+                if (hasShowType) parts.push(details.program.showType);
+                parts.push(programDuration + "min")
+
+                var otherDetail = parts.join(" · ");
 
                 programDetails.find(".chnum").text(otherDetail);
 
@@ -2878,12 +3159,14 @@ function initVinoHome() {
 
         tvii.requestProgramDetails(
             programObject.programListingId,
-            programObject.programChannelId,
+            programObject.programChannelNum,
             programObject.programDate,
             function (details) {
                 var prodet = det.find(".program-details");
-                var programListingID = details.program.listingId;
-                var episodeID = details.program.showId;
+
+                /*var programListingID = details.program.listingId;
+                var episodeID = details.program.showId;*/
+
                 var channelNumber = details.channel.number;
                 var channelName = details.channel.name;
                 var programName = details.program.showName;
@@ -2895,37 +3178,39 @@ function initVinoHome() {
                 var programDuration = details.program.duration;
                 var programDescription = details.program.description;
 
-                var logoSrc = "/images/cdn/tvp" + details.channel.logo;
-                logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
+                if (details.channel.logo) {
+                    var logoSrc = "/images/cdn/tvp" + details.channel.logo;
+                    logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
 
-                var chlogo = prodet.find(".chlogo");
-                chlogo.on("error", function () {
-                    chlogo.hide();
-                });
+                    var chlogo = prodet.find(".chlogo");
+                    chlogo.on("error", function () {
+                        chlogo.hide();
+                    });
 
-                chlogo.attr("src", logoSrc)
-
-                var img = details.extra_program ? details.extra_program.image : null;
-                if (
-                    img &&
-                    img !== "https://www.tvpassport.com/resource/img/generics/null-movie-poster.png" &&
-                    img !== "https://www.tvpassport.com/resource/img/generics//null-tv-series.png"
-                ) {
-                    img = img.replace(/^.*?(\/image\/)/, '$1');
-                    img = img.replace(/\/\d+x\d+\//, '/400x225/');
-                } else {
-                    if (details.program.showPicture) {
-                        img = "/image/show/400x225/" + details.program.showPicture;
-                    }
+                    chlogo.attr("src", logoSrc)
                 }
 
-                if (img) {
+                var img = details.extra_program ? details.extra_program.image : null;
+
+                var isValidImage =
+                    img && img.indexOf("/resource/img/generics/") === -1;
+
+                if (isValidImage) {
+                    img = img.replace(/^.*?(\/image\/)/, "$1");
+                    img = img.replace(/\/\d+x\d+\//, "/400x225/");
+                } else if (details.program.showPicture) {
+                    //if show picture exists, set isValidImage to true
+                    isValidImage = true;
+                    img = "/image/show/400x225/" + details.program.showPicture;
+                }
+
+                if (isValidImage) {
                     det.find(".program-image>img").attr("src", "/images/cdn/tvp" + img)
                 }
 
-                if (programEpisode) {
+                /*if (programEpisode) {
                     prodet.find(".program-description > span").text(programEpisode);
-                }
+                }*/
 
                 var parts = [];
 
@@ -3049,12 +3334,33 @@ function initVinoHome() {
                     det.find(".actor-container").append(p);
                 }
 
-                if (!programEpisode || programEpisode == programName) {
-                    prodet.find(".program-description > p").addClass("no-episode");
-                }
                 prodet.find(".program-description > p").text(programDescription);
 
-                head2.find("span").text(programName);
+                const span = head2.find("p > span");
+                const p2 = head2.find("p");
+
+                if (!span.length || !p2.length) return;
+
+                // set text
+                span.text(
+                    programEpisode && programEpisode != programName
+                        ? programName + "「" + programEpisode + "」"
+                        : programName
+                );
+
+                // reset marquee
+                p2.removeClass("marquee");
+
+                // force layout
+                const pEl = p2[0];
+                const spanEl = span[0];
+
+                pEl.offsetWidth;
+                spanEl.offsetWidth;
+                // enable marquee if overflow
+                if (spanEl.scrollWidth > pEl.clientWidth) {
+                    p2.addClass("marquee");
+                }
 
                 prodet.find(".chnumber").text(channelNumber);
                 prodet.find(".chname").text(channelName);
@@ -3137,7 +3443,7 @@ function initVinoHome() {
                         setupProgramPage({
                             programListingId: details.attr("data-prlistid"),
                             programDate: details.attr("data-prlist-date"),
-                            programChannelId: details.attr("data-channel-id"),
+                            programChannelNum: details.attr("data-chnum"),
                         });
                     }, 0);
                 }
@@ -3168,8 +3474,11 @@ function initVinoHome() {
 
         setTimeout(function () {
             head2.find("span").text("");
+            //emptied div
             det.empty();
             det.hide();
+            //good chance to GC
+            vino.requestGarbageCollect();
             head2.hide();
             head.show();
             bott.removeClass("prfuldet");
@@ -3344,7 +3653,7 @@ function initVinoHome() {
         var isProgramList = $(".program-list").is(":visible");
 
         var olvProgramId = $(".program-details").attr("data-prlistid");
-        var olvChannelId = $(".program-details").attr("data-channel-id");
+        var olvChannelNum = $(".program-details").attr("data-chnum");
         var olvProgramInfoDate = $(".program-details").attr("data-prlist-date");
 
         if (isProgramList) {
@@ -3415,7 +3724,7 @@ function initVinoHome() {
 
                     tvii.requestProgramDetails(
                         olvProgramId,
-                        olvChannelId,
+                        olvChannelNum,
                         olvProgramInfoDate,
                         function (details) {
                             var programName = details.program.showName;
@@ -3431,18 +3740,32 @@ function initVinoHome() {
                                     topicTagHeader = details.program.teamInfo.league + ": " +
                                         details.program.teamInfo.team1 + " v. " + details.program.teamInfo.team2;
                                 }
+                            } else if (
+                                details.program.episodeTitle &&
+                                details.program.episodeTitle != details.program.showName
+                            ) {
+                                var episodeTitle = details.program.episodeTitle;
+
+                                // limit to 30 chars
+                                if (episodeTitle.length > 30) {
+                                    episodeTitle = episodeTitle.slice(0, 30) + "...";
+                                }
+
+                                topicTagHeader += "「" + episodeTitle + "」";
                             }
 
                             headOlv.attr("data-olv-prname", programName)
                             headOlv.attr("data-olv-topictag", topicTagHeader)
                             headOlv.attr("data-olv-prepisode", programEpisode)
+                            headOlv.attr("data-olv-channelid", details.channel.id)
                             headOlv.attr("data-olv-episodeid", details.program.showId)
+                            headOlv.attr("data-olv-parentid", details.program.seriesId)
 
                             var text = programName;
 
                             if (programEpisode && programEpisode != programName) {
                                 // Normal case: add episode title if it exists and is different
-                                text += ": " + programEpisode;
+                                text += "「" + programEpisode + "」";
                             }
 
                             headOlv.find("span").text(text);
@@ -3469,6 +3792,8 @@ function initVinoHome() {
         headOlv.attr("data-olv-prname", "")
         headOlv.attr("data-olv-prepisode", "")
         headOlv.attr("data-olv-episodeid", "")
+        headOlv.attr("data-olv-channelid", "")
+        headOlv.attr("data-olv-parentid", "")
         headOlv.find("span").text("");
         if (miiverseContainer) {
             detachMiiverseScrollListener(); // ensure no old listeners
@@ -4027,33 +4352,38 @@ function initVinoHome() {
         miiverseContainer.hide();
 
         var olvDoodleModalHtml = $(".miiverse-doodle-modal-template").html();
-        $(".miiverse-doodle-modal").html(olvDoodleModalHtml);
-        $(".miiverse-doodle-modal").show();
+        $(".miiverse-doodle-modal").html(olvDoodleModalHtml).show();
         setMiiverseCanvasListener(screenshot);
-
-        $(".miiverse-doodle-modal .color-option").makeScrollContainer(false);
     }
 
     function closeDoodleModal() {
+
+        baseCtx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         baseCanvas.width = 0;
         baseCanvas.height = 0;
-        baseCanvas = null;
-
-        baseCtx = null;
-
         canvas.width = 0;
         canvas.height = 0;
-        canvas = null;
+        undoStack.length = 0;
+        redoStack.length = 0;
 
+        $(".miiverse-doodle-modal .menu-option a").off("click");
+        $(".miiverse-doodle-modal .color-option .custom input").off("change");
+        $(".miiverse-doodle-modal .size-container a").off("click");
+        $(".miiverse-doodle-modal .color-option a").off("click");
+        $(".miiverse-doodle-modal .back-modal").off("click");
+        $(".miiverse-doodle-modal").empty().hide();
+
+        baseCtx = null;
         ctx = null;
-
+        canvas = null;
+        baseCanvas = null;
         undoStack = null;
         redoStack = null;
 
-        $(".miiverse-doodle-modal").empty();
         //Collect garbage from disposed modal
         vino.requestGarbageCollect();
-        $(".miiverse-doodle-modal").hide();
         miiverseContainer.show();
         miiverseContainer.scrollTop(miivContScr);
         attachMiiverseScrollListener();
@@ -4084,6 +4414,8 @@ function initVinoHome() {
     var redoStack = null;
 
     function setMiiverseCanvasListener(screenshot) {
+
+        $(".miiverse-doodle-modal .color-option").makeScrollContainer(false);
 
         tvii.setClassHoverToEls(
             $(
@@ -4208,10 +4540,13 @@ function initVinoHome() {
             vino.soundPlayVolume("SE_WAVE_OK_SUB_TOUCH_OFF", 30);
 
             var programId = headOlv.attr("data-olv-episodeid");
+            var parentId = headOlv.attr("data-olv-parentid");
+            var chId = headOlv.attr("data-olv-channelid");
+
             var searchKey1 = ("PR" + programId).trim();
             var topicTag = headOlv.attr("data-olv-topictag");
-            var searchKey2 = null;
-            var searchKey3 = null;
+            var searchKey2 = ("PP" + parentId).trim();
+            var searchKey3 = ("CH" + chId).trim();
             var searchKey4 = null;
             var searchKey5 = null;
 
@@ -4267,16 +4602,7 @@ function initVinoHome() {
         });
 
         function didUserDraw() {
-            // Grab all pixel data once
-            var pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-
-            // Check alpha channel for any non-transparent pixels
-            for (var i = 3; i < pixels.length; i += 4) {
-                if (pixels[i] !== 0) {
-                    return true;
-                }
-            }
-            return false;
+            return undoStack && undoStack.length > 1;
         }
 
         //SET DOODLE LISTENERS
@@ -4609,15 +4935,19 @@ function initVinoHome() {
                 miiverseModal.find(".feeling-buttons li input:checked").val(),
                 10
             );
+
             var isSpoiler = miiverseModal
                 .find(".spoiler-button input")
                 .prop("checked");
 
             var programId = headOlv.attr("data-olv-episodeid");
+            var parentId = headOlv.attr("data-olv-parentid");
+            var chId = headOlv.attr("data-olv-channelid");
+
             var searchKey1 = ("PR" + programId).trim();
             var topicTag = headOlv.attr("data-olv-topictag");
-            var searchKey2 = null;
-            var searchKey3 = null;
+            var searchKey2 = ("PP" + parentId).trim();
+            var searchKey3 = ("CH" + chId).trim();
             var searchKey4 = null;
             var searchKey5 = null;
 
@@ -4914,101 +5244,3 @@ function initVinoHome() {
 window.addEventListener("load", function () {
     tvii.initialize();
 });
-
-tvii.locFile = {
-    "vino.ok": "OK",
-    "vino.cancel": "Cancel",
-    "vino.search": "Search",
-    "vino.cancel-withb": " Cancel",
-    "vino.back-withb": " Back",
-    "vino.close-withb": " Close",
-    "vino.continue": "Continue",
-    "vino.logout": "Log Out",
-    "vino.login": "Log In",
-    "vino.error.account_creation_unavailable": "Server is unavailable for\naccount creation.\n\nPlease try again later.",
-    "vino.error.account_not_pretendo": "An error has ocurred.\nAre you using a Pretendo Network ID?\n\nPlease connect to Pretendo and\nuse a Pretendo Network ID.",
-    "vino.error.default_error": "An network error\nhas ocurred\n\nPlease try again later.",
-    "vino.error.not_supported_error": "Nintendo TVii is not supported in\nyour region yet.\n\nPlease visit projectrose.cafe for\nmore information.",
-    "vino.setup.screen1.h1": "Welcome to Nintendo TVii",
-    "vino.setup.screen1.p1": "Nintendo TVii allows you to easily search and check the program guide of your local TV provider, set reminders for upcoming episodes, and have discussion about new episodes in social media.",
-    "vino.setup.screen2.h1": "Set up your Zip Code",
-    "vino.setup.screen2.p1": "Please enter your zip code.<br>It's used for getting your local TV providers.",
-    "vino.setup.screen3.h1": "Select your TV Provider",
-    "vino.setup.screen3.p1": "Please select your local TV provider.",
-    "vino.setup.screen3.p2": "Please choose a TV provider to\ncontinue with setup.",
-    "vino.setup.screen3.m1": "No TV providers available for\nthis zipcode.\n\nTry using a different code.",
-    "vino.setup.screen3.m1.b1": "Change Code",
-    "vino.setup.screen3.t1": "Cable",
-    "vino.setup.screen3.t2": "Satellite",
-    "vino.setup.screen3.t3": "Antenna",
-    "vino.setup.screen4.h1": "Select your favorite channels",
-    "vino.setup.screen4.p1": "Please select your favorite channels.",
-    "vino.setup.screen5.h1": "Link your Social Networks",
-    "vino.setup.screen5.p1": "Log in on the available social networks to share your live TV comments with your followers!",
-    "vino.setup.screen5.p2": "You can change these settings later.",
-    "vino.setup.screen5.b2": "Log in to Bluesky",
-    "vino.setup.screen6.h1": "Finishing Initial User Setup",
-    "vino.setup.screen6.p1": "The setup process ends here. If you want to change anything, press 'Back', otherwise press 'Finish'.",
-    "vino.setup.screen6.b1": "Finish",
-    "vino.setup.bsky-login.p1": "Username:",
-    "vino.setup.bsky-login.p2": "Password/App Password:",
-    "vino.setup.bsky-login.p3": "Logged in to: ",
-    "vino.setup.bsky-login.p4": "Log in with your Bluesky account.",
-    "vino.setup.bsky-login.p5": "Logged in to your Bluesky account.",
-    "vino.setup.bsky-login.p6": "An error has ocurred.\nYou may have entered incorrect credentials,\nPlease try again.",
-    "vino.setup.bsky-login.p7": "Do you really want to\nlog out of Bluesky?",
-    "vino.setup.bsky-login.p8": "Could not log in.\nAccount is not active.",
-    "vino.setup.bsky-login.p9": "Please enter username\nand password.",
-    "vino.home.header.live": "Live",
-    "vino.home.header.guide": "Guide",
-    "vino.home.header.rec": "Recommended",
-    "vino.home.header.menu": "Menu",
-    "vino.home.tips.title": "Tips",
-    "vino.home.tips.tip1": "You can start Nintendo TVii from the HOME Menu even with a suspended program, feel free to check the guide at any moment!",
-    "vino.home.tips.tip2": "Set reminders for your favorite TV programs and you will recieve an Aroma notification when it's starting soon.",
-    "vino.home.tips.tip3": "Favorite your favorite TV programs and check Recommended for seeing upcoming recommendations and your favorite TV programs.",
-    "vino.home.tips.tip4": "You can check more information about a TV program such as the actors/staff that worked on it, trailers, and even upcoming airings.",
-    "vino.home.tips.tip5": "Check what your friends are watching on live TV by selecting Menu>Friends, and then chat with them on your linked social media.",
-    "vino.home.tips.tip6": "You can set when the program guide starts by selecting Change Guide Time on the Guide tab, look for up to 8 days of upcoming airings!",
-    "vino.home.tips.tip7": "Check your friends profiles on Menu>Friends and see their profile to know what they're favorite TV programs and actors are!",
-    "vino.home.tips.tip8": "Link your social media if you haven't already on Menu>Settings and be able to chat with other people on the page for a TV program.",
-    "vino.home.tips.tip9": "Share TV program recommendations to other users that they'll recieve once they open Nintendo TVii, make sure not to send too many at once!",
-    "vino.home.tips.tip10": "Select the Tune In Live button to instantly tune in to the TV program that is currently focused!",
-    "vino.home.tips.tip11": "Search for your favorite TV programs and actors on Menu>Search and type what you want to see, you can even select from suggestions on the keyboard!",
-    "vino.home.tips.tip12": "Check the e-manual for Nintendo TVii on Menu>Electronic Manual and read every page to know more detailed information about every part of the app.",
-    "vino.home.genre.series": "Series/<br>Drama",
-    "vino.home.genre.news": "News/<br>C.Affairs",
-    "vino.home.genre.movies": "Movies",
-    "vino.home.genre.comedy": "Comedy",
-    "vino.home.genre.talk": "Talk/<br>Business",
-    "vino.home.genre.special": "Special/<br>Other",
-    "vino.home.genre.music": "P. Arts/<br>Music",
-    "vino.home.genre.lifestyle": "Lifestyle",
-    "vino.home.genre.documentary": "Docu./<br>Factual",
-    "vino.home.genre.reality": "Reality/<br>G. Show",
-    "vino.home.genre.sports": "Sports",
-    "vino.home.genre.family": "Family/<br>Kids",
-    "vino.home.genre.adult_animated": "Adult<br>Anim.",
-    "vino.days.mon_short": "Mon",
-    "vino.days.tue_short": "Tue",
-    "vino.days.wed_short": "Wed",
-    "vino.days.thu_short": "Thu",
-    "vino.days.fri_short": "Fri",
-    "vino.days.sat_short": "Sat",
-    "vino.days.sun_short": "Sun",
-    "vino.home.lst.time_moment_ago": "Started a moment ago",
-    "vino.home.lst.time_minute_ago": "Started %s minute ago",
-    "vino.home.lst.time_minutes_ago": "Started %s minutes ago",
-    "vino.home.lst.time_hours_ago": "Started %sh ago",
-    "vino.home.lst.time_hours_minutes_ago": "Started %sh and %s min ago",
-    "vino.home.lst.time_start_soon": "Starting now",
-    "vino.home.lst.time_starts_minute": "Starts in % minute",
-    "vino.home.lst.time_starts_minutes": "Starts in % minutes",
-    "vino.home.lst.time_starts_hours": "Starts in %h",
-    "vino.home.lst.time_starts_hours_minutes": "Starts in %sh and %s min",
-    "vino.home.olv.preview_no_posts": "No posts for this program. Be the first!",
-    "vino.home.lst.new": "New",
-    "vino.home.lst.live": "Live",
-    "vino.home.program.genre": "Genre:",
-    "vino.home.program.premiere": "Premiere Date:"
-}

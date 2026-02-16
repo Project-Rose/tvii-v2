@@ -4,14 +4,8 @@ import { env } from "../../env.ts";
 import * as cheerio from "cheerio";
 import { db } from "../../utils/db.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
-import NodeCache from "node-cache";
 import { fetchWithProxy, postWithProxy } from "../../utils/fetchWithProxy.ts";
 import Redis from "ioredis";
-
-const cache = new NodeCache({
-    stdTTL: 48 * 60 * 60, // 48 hours
-    checkperiod: 60 * 60 // cleanup every hour
-});
 
 const redis = new Redis();
 
@@ -75,14 +69,27 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
     const { zipcode, country } = req.params;
     const endpoint = `provider:${country}:zipcode:${zipcode}`;
 
+    function removeTVMedia(providers: Provider[]) {
+        return providers.filter(function (p) {
+            return !p.name || !p.name.startsWith("TV Media");
+        });
+    }
+
     try {
         // 1️⃣ Redis cache lookup
         const cached = await redis.get(endpoint);
         if (cached) {
             try {
-                return res.status(200).json(JSON.parse(cached));
+                const parsed = JSON.parse(cached);
+
+                // always clean before returning
+                if (parsed?.data && Array.isArray(parsed.data)) {
+                    parsed.data = removeTVMedia(parsed.data);
+                }
+
+                return res.status(200).json(parsed);
+
             } catch {
-                // corrupted cache
                 await redis.del(endpoint);
             }
         }
@@ -94,7 +101,6 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
         const args = new URLSearchParams();
         args.append("postalCode", String(zipcode).trim());
 
-        // Step 1: Fetch search for zipcode
         const searchRespRaw = await postWithProxy(
             "https://www.tvpassport.com/index.php/lineups",
             args
@@ -120,10 +126,6 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
             "Satellite TV Listings": "satellite",
             "Other TV Listings": "other",
         };
-
-        if (!container.find("h2.p").length) {
-            throw new Error("Could not find providers");
-        }
 
         container.find("h2.p").each((_, h2) => {
             const headingText = $(h2).text().trim();
@@ -155,10 +157,13 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
             }
         });
 
+        // always clean before caching
+        const cleanedProviders = removeTVMedia(providers);
+
         const result = {
             hasError: 0,
             zipcode,
-            data: providers,
+            data: cleanedProviders,
         };
 
         // 2️⃣ Store in Redis (7 days)
@@ -170,6 +175,7 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
         );
 
         return res.status(200).json(result);
+
     } catch (err) {
         console.error(`Error in ${endpoint}:`, err);
         return res.status(500).json({
@@ -316,6 +322,42 @@ interface Program {
         location: string;
         sportEvent: string;
     } | null;
+}
+
+async function getChannelScheduleByNumber(
+    provider_id: string,
+    tz_name: string,
+    country: string,
+    channel_num: string,
+    date: string
+) {
+    // fetch channels
+    const channels = await getChannelListByProviderID(
+        String(country),
+        String(provider_id),
+        String(tz_name)
+    ) as any;
+
+    if (!channels || !channels.length) {
+        throw new Error("No channels / fetching error");
+    }
+
+    // find channel by number
+    const channel = channels.find(function (c: any) {
+        return String(c.number) === String(channel_num);
+    });
+
+    if (!channel || !channel.url) {
+        throw new Error("Channel not found for number: " + channel_num);
+    }
+
+    return await getChannelScheduleByPath(
+        provider_id,
+        tz_name,
+        country,
+        channel.url,
+        date
+    );
 }
 
 
@@ -489,6 +531,17 @@ function makeProgramKey(program_url: string) {
     }
 }
 
+function getSeriesIdFromKey(key: string | null) {
+    if (!key) return null;
+
+    // must be series
+    if (key.indexOf("programs:series:") !== 0) return null;
+
+    var parts = key.split("/");
+    var id = parts[parts.length - 1];
+
+    return /^\d+$/.test(id!) ? id : null;
+}
 
 async function getShowDetails
     (
@@ -498,6 +551,7 @@ async function getShowDetails
         country: string
     ) {
     const key = makeProgramKey(program_url) as any;
+    const seriesId = getSeriesIdFromKey(key) as any;
 
     // 1️⃣ Redis cache lookup
     const cached = await redis.get(key);
@@ -546,16 +600,54 @@ async function getShowDetails
             cast: [] as any
         };
 
-        container.find(".cast-array .cast-member").each((_, el) => {
-            const member = $(el);
-            const linkEl = member.find(".cast-name a");
+        console.log(seriesId)
+        //will only continue IF its a series (call get actor endpoint)
+        if (seriesId) {
+            try {
+                const args = new URLSearchParams();
+                args.append("seriesID", seriesId);
 
-            details.cast.push({
-                img: member.find("img").attr("src") || null,
-                name: linkEl.text().trim() || null,
-                url: linkEl.attr("href") || null
+                const castRespRaw = await postWithProxy(
+                    "https://www.tvpassport.com/series/getLatestSeasonCast",
+                    args
+                );
+
+                if (!castRespRaw.ok) {
+                    throw new Error("Could not fetch series cast");
+                }
+
+                const castResp = await castRespRaw.json() as any;
+                const castHtml = castResp.cast_data;
+                const $$ = cheerio.load(castHtml);
+
+                // adjust selector if needed depending on returned HTML
+                $$(".cast-member").each((_, el) => {
+                    const member = $$(el);
+                    const linkEl = member.find(".cast-name a");
+
+                    details.cast.push({
+                        img: member.find("img").attr("src") || null,
+                        name: linkEl.text().trim() || null,
+                        url: linkEl.attr("href") || null
+                    });
+                });
+
+            } catch (err) {
+                console.error("Series cast fetch failed, fallback to page cast:", err);
+            }
+        } else {
+            //Then we are requesting movie details, movies seem to have cast members built in
+            $(".cast-member").each((_, el) => {
+                const member = $(el);
+                const linkEl = member.find(".cast-name a");
+
+                details.cast.push({
+                    img: member.find("img").attr("src") || null,
+                    name: linkEl.text().trim() || null,
+                    url: linkEl.attr("href") || null
+                });
             });
-        });
+        }
 
 
         // 2️⃣ Store in Redis (7 days)
@@ -719,14 +811,14 @@ router.get("/lineup/:country/:provider_id", async (req: Request, res: Response) 
 });
 
 router.get("/info", async (req: Request, res: Response) => {
-    const { date, listingId, channelId, tz_name, country, provider_id } = req.query as any;
+    const { date, listingId, channelNum, tz_name, country, provider_id } = req.query as any;
 
     try {
         if (country !== "US" && country !== "CA") {
             throw new Error("Country not allowed");
         }
 
-        if (!date || !listingId || !channelId || !provider_id || !tz_name) {
+        if (!date || !listingId || !channelNum || !provider_id || !tz_name) {
             throw new Error("Missing required parameters");
         }
 
@@ -741,11 +833,11 @@ router.get("/info", async (req: Request, res: Response) => {
         }
 
         // fetch schedule for ONE channel on ONE day
-        const schedule = await getChannelScheduleByPath(
+        const schedule = await getChannelScheduleByNumber(
             String(provider_id),
             String(tz_name),
             String(country),
-            String(channelId),
+            String(channelNum),
             String(date)
         ) as any[];
 
@@ -781,7 +873,7 @@ router.get("/info", async (req: Request, res: Response) => {
 
         // find channel by url === channelId
         const channel = channels.find(
-            (c: any) => String(c.url) === String(channelId)
+            (c: any) => String(c.number) === String(channelNum)
         );
 
         if (!channel) {
@@ -791,9 +883,13 @@ router.get("/info", async (req: Request, res: Response) => {
             });
         }
 
-        const extra_program = await getShowDetails(program.url, String(country),
-            String(provider_id),
-            String(tz_name))
+        let extra_program = null;
+
+        if (program.url) {
+            extra_program = await getShowDetails(program.url, String(country),
+                String(provider_id),
+                String(tz_name))
+        }
 
         return res.status(200).json({
             hasError: 0,

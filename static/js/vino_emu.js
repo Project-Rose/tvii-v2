@@ -644,7 +644,7 @@ if (typeof vino === "undefined") {
                 searchkey5
             );
         },
-        suggest_isOpening: function () { },
+        suggest_isOpening: function () { return false },
         suggest_set: function (
             sug1,
             sug2,
@@ -696,7 +696,7 @@ if (typeof vino === "undefined") {
             console.log("Reset suggestion strings");
             return true;
         },
-        suggest_getString: function () { },
+        suggest_getString: function () { return "" },
         pc_checkPIN: function () {
             console.log("PIN is true, perentl conrol allowed");
             return true;

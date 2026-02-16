@@ -13,9 +13,26 @@
       document.write('<script src="/js/vino_emu.js"><\/script>');
     }
   </script>
-  <script src="/js/base64.min.js" onerror="handleScriptError('base64.min.js')"></script>
   <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
   <script src="/js/vino.js" onerror="handleScriptError('vino.js')"></script>
+  <%
+var scriptFile = "loc-en_US.js"; // default
+
+if (typeof lang === "string") {
+  var l = lang.toLowerCase();
+
+  if (l === "es") {
+    scriptFile = "loc-es_419.js";
+  } else if (l === "fr") {
+    scriptFile = "loc-fr_CA.js";
+  } else if (l === "en") {
+    scriptFile = "loc-en_US.js";
+  }
+}
+%>
+
+  <script src="/js/<%= scriptFile %>" onerror="handleScriptError('<%= scriptFile %>')"></script>
+
 </head>
 
 <body data-pid="<%- pid %>" data-country="<%- country %>" data-tv-provider-tz="<%- tz_name %>" data-region="<%- region %>" data-utc-offset="<%- utc_offset %>" data-tv-provider-id="<%- tv_provider_id %>">
@@ -38,7 +55,9 @@
       <div class="header pr-details" style="display: none">
         <a href="javascript:void(0)" class="return-top"></a>
         <a href="javascript:void(0)" class="favorite"></a>
+        <p>
         <span></span>
+        </p>
       </div>
 
       <div class="header miiverse" style="display: none">
@@ -137,8 +156,8 @@
               </div>
             </div>
             <div class="program-description">
-              <span></span>
-              <p></p>
+              <!--<span></span>-->
+              <p class="no-episode"></p>
             </div>
           </div>
 
@@ -259,7 +278,7 @@
           </div>
         </div>
         <div class="dialog-buttons">
-          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b">Cancel</a>
+          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b"> Cancel</a>
           <a href="javascript:void(0)" navi_target class="btn-2">Post</a>
         </div>
       </div>
