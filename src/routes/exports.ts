@@ -7,6 +7,7 @@ import { images } from "../routes/images.ts";
 import { socials } from "../routes/api/social.ts";
 import { account } from "../routes/api/act.ts";
 import { miiverse } from "../routes/api/miiverseFw.ts";
+import { title } from "../routes/api/title.ts";
 import { type Router } from "express";
 
 interface Routes {
@@ -50,6 +51,11 @@ const routes: Routes[] = [
         name: "Vino Social Media (JP)",
         path: "/api/v1/socials",
         route: socials,
+    },
+    {
+        name: "Vino Title Image Generator (JP)",
+        path: "/api/v1/title",
+        route: title,
     },
     {
         name: "Vino Account Handler (JP)",

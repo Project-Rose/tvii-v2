@@ -1,8 +1,9 @@
 tvii.locFile = {
     "vino.ok": "OK",
-    "vino.cancel": "Cancel",
+    "vino.cancel": "Close",
     "vino.search": "Search",
-    "vino.cancel-withb": " Cancel",
+    "vino.post": "Post",
+    "vino.cancel-withb": " Close",
     "vino.back-withb": " Back",
     "vino.close-withb": " Close",
     "vino.continue": "Continue",
@@ -30,6 +31,10 @@ tvii.locFile = {
     "vino.setup.tvtypes.antenna": "Antenna",
     "vino.setup.screen4.h1": "Select your favorite channels",
     "vino.setup.screen4.p1": "Please select your favorite channels.",
+
+    "vino.setup.screen4.guide1": "To search for more channels, type the channel number here.",
+    "vino.setup.screen4.guide2": "You can also search them by name here.",
+
     "vino.setup.screen5.h1": "Link your Social Networks",
     "vino.setup.screen5.p1": "You can log in on these available social networks to share your live TV comments with your followers!",
     "vino.setup.screen5.p2": "You can change these settings later.",
@@ -61,12 +66,12 @@ tvii.locFile = {
     "vino.home.tips.tip2": "Set reminders for your favorite TV programs and you will recieve an Aroma notification when it's starting soon.",
     "vino.home.tips.tip3": "Favorite your favorite TV programs and check Recommended for seeing upcoming recommendations and your favorite TV programs.",
     "vino.home.tips.tip4": "You can check more information about a TV program such as the actors/staff that worked on it, trailers, and even upcoming airings.",
-    "vino.home.tips.tip5": "Check what your friends are watching on live TV by selecting Menu>Friends, and then chat with them on your linked social media.",
+    "vino.home.tips.tip5": "You can see more information about an user from a post, just click on their Mii, why not add them as a friend?.",
     "vino.home.tips.tip6": "You can set when the program guide starts by selecting Change Guide Time on the Guide tab, look for up to 8 days of upcoming airings!",
-    "vino.home.tips.tip7": "Check your friends profiles on Menu>Friends and see their profile to know what they're favorite TV programs and actors are!",
-    "vino.home.tips.tip8": "Link your social media if you haven't already on Menu>Settings and be able to chat with other people on the page for a TV program.",
-    "vino.home.tips.tip9": "Share TV program recommendations to other users that they'll recieve once they open Nintendo TVii, make sure not to send too many at once!",
-    "vino.home.tips.tip10": "Select the Tune In Live button to instantly tune in to the TV program that is currently focused!",
+    "vino.home.tips.tip7": "Check your friends profiles on Menu>My Friends and see their profile to know what they're favorite TV programs and actors are!",
+    "vino.home.tips.tip8": "Link your social media if you haven't already on Menu>Settings so your posts are crossposted to those platforms!",
+    "vino.home.tips.tip9": "Share TV program recommendations to friends that they'll recieve once they open Nintendo TVii, make sure not to send too many at once!",
+    "vino.home.tips.tip10": "Select the pink bottom left corner button to instantly tune in to the TV program that is currently focused!",
     "vino.home.tips.tip11": "Search for your favorite TV programs and actors on Menu>Search and type what you want to see, you can even select from suggestions on the keyboard!",
     "vino.home.tips.tip12": "Check the e-manual for Nintendo TVii on Menu>Electronic Manual and read every page to know more detailed information about every part of the app.",
     "vino.home.genre.series": "Series/<br>Drama",
@@ -81,7 +86,7 @@ tvii.locFile = {
     "vino.home.genre.reality": "Reality/<br>G. Show",
     "vino.home.genre.sports": "Sports",
     "vino.home.genre.family": "Family/<br>Kids",
-    "vino.home.genre.adult_animated": "Adult<br>Anim.",
+    "vino.home.genre.adult_animated": "Adult<br>Anim",
     "vino.days.mon_short": "Mon",
     "vino.days.tue_short": "Tue",
     "vino.days.wed_short": "Wed",
@@ -95,13 +100,80 @@ tvii.locFile = {
     "vino.home.lst.time_hours_ago": "Started %sh ago",
     "vino.home.lst.time_hours_minutes_ago": "Started %sh and %s min ago",
     "vino.home.lst.time_start_soon": "Starting now",
-    "vino.home.lst.time_starts_minute": "Starts in % minute",
-    "vino.home.lst.time_starts_minutes": "Starts in % minutes",
-    "vino.home.lst.time_starts_hours": "Starts in %h",
+    "vino.home.lst.time_starts_minute": "Starts in %s minute",
+    "vino.home.lst.time_starts_minutes": "Starts in %s minutes",
+    "vino.home.lst.time_starts_hours": "Starts in %sh",
     "vino.home.lst.time_starts_hours_minutes": "Starts in %sh and %s min",
+
     "vino.home.olv.preview_no_posts": "No posts for this program. Be the first!",
+    "vino.home.olv.preview_handwritten": "Handwritten message",
+    "vino.home.olv.preview_spoiler": "Message marked as spoiler",
+
+    "vino.home.olv.no_posts": "No posts yet.<br>Write your first post!",
+    "vino.home.olv.crosspost.message": "Posts are crossposted to your linked social<br>media. Yeahs are not crossposted.",
+    "vino.home.olv.crosspost.post.window_title": 'Post about "%s"',
+    "vino.home.olv.crosspost.post.spoilers": 'Mark as Spoiler',
+    "vino.home.olv.crosspost.post.doodlebut": 'Doodle',
+
+    "vino.home.olv.modal.jump_miiverse_post": "View this user's latest post on Miiverse",
+    "vino.home.olv.modal.is_friends": "Friends",
+    "vino.home.olv.modal.is_myself": "Myself",
+    "vino.home.olv.modal.add_friend": "Add as Friend",
+    "vino.home.olv.modal.post_count": "%s posts",
+    "vino.home.olv.modal.ask_adding_friend": "Do you want to close Nintendo TVii\nand jump to the HOME Menu to\nadd this user as a friend?",
+
+    "vino.home.olv.crosspost.post.text_placeholder": 'Tap here to write a message...',
+    "vino.home.olv.crosspost.post.placeholder_doodle": 'Tap here to add a comment.',
+    "vino.home.olv.crosspost.post.doodle_pen_size": 'Size:',
+    "vino.home.olv.crosspost.post.doodle_confirm_reset": "Are you sure you want to cancel?\n\nYour drawing and the history (undo/redo)\nwill be cleared.",
+    "vino.home.olv.crosspost.post.doodle_color_message": "Please input a correct hex color.\nUse #RRGGBB or #RGB.",
+
+    "vino.home.olv.crosspost.post.input_requiered": 'Please write a message.',
+
+    "vino.home.olv.crosspost.post.memo_requiered": 'Please draw something first.',
+
+    "vino.home.olv.crosspost.post.time.less_than_minute_ago": 'Less than a minute ago',
+    "vino.home.olv.crosspost.post.time.minute_ago": 'A minute ago',
+    "vino.home.olv.crosspost.post.time.minutes_ago": '%s minutes ago',
+    "vino.home.olv.crosspost.post.time.hour_ago": 'An hour ago',
+    "vino.home.olv.crosspost.post.time.hours_ago": '%s hours ago',
+    "vino.home.olv.crosspost.post.time.day_ago": 'A day ago',
+    "vino.home.olv.crosspost.post.time.days_ago": '%s days ago',
+
+    "vino.home.olv.crosspost.post.empathy": 'Yeah!',
+    "vino.home.olv.crosspost.post.empathy.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.empathy.frustrated": 'Yeah...',
+    "vino.home.olv.crosspost.post.empathy.frustrated.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.empathy.happy": 'Yeah!',
+    "vino.home.olv.crosspost.post.empathy.happy.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.empathy.like": 'Yeah\u2665',
+    "vino.home.olv.crosspost.post.empathy.like.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.empathy.puzzled": 'Yeah...',
+    "vino.home.olv.crosspost.post.empathy.puzzled.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.empathy.surprised": 'Yeah!?',
+    "vino.home.olv.crosspost.post.empathy.surprised.remove": 'Unyeah',
+
+    "vino.home.olv.crosspost.post.view_spoiler": 'View Spoilers',
+
+    "vino.home.olv.crosspost.error.no_miiverse_yet": "This function is currently not available\nsince posts arent being crossposted\nto Miiverse for now.",
+
     "vino.home.lst.new": "New",
     "vino.home.lst.live": "Live",
     "vino.home.program.genre": "Genre:",
-    "vino.home.program.premiere": "Premiere Date:"
+    "vino.home.program.airing_duration": "Airing Duration:",
+    "vino.home.program.airing_duration.duration": "%s minutes",
+    "vino.home.program.cast": "Cast",
+
+    "vino.home.not_available_feature": "This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun",
+    "vino.home.not_available_actor_feature": "The function to see actor info\nis not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun",
+
+    "vino.home.program.details_label": "Details",
+    "vino.home.program.button.view_future_airing": "View Upcoming Airings",
+    "vino.home.program.button.set_reminder": "Set Program Reminder",
+    "vino.home.program.button.send_friend_rec": "Recommend to Friend",
 }

@@ -139,10 +139,14 @@ var tvii = {
     locFile: null,
     templates: {
         setUpLocHTML: function () {
+
             $("body")
                 .find("[data-loc]")
                 .each(function (index, el) {
                     var $el = $(el);
+
+                    if ($.trim($el.html()).length) return;
+
                     var els = tvii.getLoc($el.attr("data-loc"));
                     $el.html(els);
                 });
@@ -151,9 +155,15 @@ var tvii = {
                 .find("[data-loc-attr]")
                 .each(function (index, el) {
                     var $el = $(el);
-                    var a = JSON.parse($el.attr("data-loc-attr"));
+
+                    var raw = $el.attr("data-loc-attr");
+                    if (!raw) return;
+
+                    var a = JSON.parse(raw);
 
                     for (var key in a) {
+                        if ($el.attr(key)) continue;
+
                         var value = a[key];
                         $el.attr(key, tvii.getLoc(value));
                     }
@@ -402,16 +412,8 @@ var tvii = {
         //HERE, WE ASSUME FR = CANADIAN FRENCH
         //EN = ENGLISH USA
         //ES = SPANISH 419
-        var lang = vino.info_getLanguage().toLowerCase();
-        // normalize language codes
-        switch (lang) {
-            case "sp": lang = "es"; break;
-            case "fr": lang = "fr"; break;
-            case "en": lang = "en"; break;
-            default: lang = "en"; // fallback
-        }
 
-        return lang;
+        return $("body").attr("data-lang");
     },
     getQuery: function (param, isSearch) {
         var queryString;
@@ -935,7 +937,8 @@ var tvii = {
 
         // --- Animated special rule ---
         if (genreID === "A") {
-            if (!rating || rating === "TV14" || rating === "TVMA") {
+            console.log(rating)
+            if (rating == "TV14" || rating == "TVMA") {
                 return "adult_animated";
             }
             return "family";
@@ -1058,24 +1061,46 @@ var tvii = {
         // --- Fallback ---
         return "special";
     },
-    initialize: function () {
-        //We want alt title screen since the US BG doesnt make sense (US REGION USERS)
-        if (
-            !vino.title_hasImage("vino_white_title") &&
-            tvii.getRegion() === "USA"
-        ) {
+    downloadTitleImage: function () {
+        var url = window.location.origin + "/api/v1/title?lang=" + tvii.getLang();
+
+        // key to store last download time
+        var LS_KEY = "title_image_last_download";
+
+        // current time
+        var now = Date.now();
+
+        // get stored timestamp
+        var lastDownload = parseInt(vino.ls_getItem(LS_KEY), 10);
+
+        // 1 hour in ms
+        var ONE_HOUR = 60 * 60 * 1000;
+
+        // if downloaded less than 1 hour ago → skip
+        if (lastDownload && (now - lastDownload < ONE_HOUR)) {
+            return;
+        }
+
+        // if no image OR expired → download again
+        if (!vino.title_hasImage(LS_KEY) || (now - lastDownload >= ONE_HOUR)) {
             vino.title_clearImage();
+
             vino.title_setFixedImage(
-                "https://i.imgur.com/kztCrOk.png",
-                "vino_white_title",
+                url,
+                LS_KEY,
                 "",
                 "",
                 "",
                 2
             );
-        }
 
+            // save new timestamp
+            vino.ls_setItem(LS_KEY, now.toString());
+        }
+    },
+    initialize: function () {
         //Avoids black memo issue
+        tvii.downloadTitleImage();
         vino.memo_reset();
 
         if (vino.ir_isEnabled()) {
@@ -2024,7 +2049,7 @@ function initVinoHome() {
 
     $(".header .menu").on("click", function (e) {
         e.preventDefault();
-        alert("This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
+        alert(tvii.getLoc("vino.home.not_available_feature"));
     })
 
     $(".header .tabs>a").on("click", function () {
@@ -2036,7 +2061,7 @@ function initVinoHome() {
             vino.soundPlayVolume("SE_TAB_SELECT", 30);
             initLiveTab();
         }
-        return alert("This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
+        return alert(tvii.getLoc("vino.home.not_available_feature"));
 
         $(".header .tabs>a").removeClass("selected");
         $(this).addClass("selected");
@@ -2058,7 +2083,7 @@ function initVinoHome() {
     var programPreviewScroll = 0;
     var lineup = tvii.getTVProviderID();
     var lineup_tz = tvii.getTVProviderTZ();
-    var limit = 50;
+    var limit = 40;
     var offset = 0;
     var total = 0;
     var duration = 120;
@@ -2499,7 +2524,26 @@ function initVinoHome() {
         var hourSpan = clock.querySelector(".hour");
         var colonSpan = hourSpan.querySelector("span");
 
-        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var lang = tvii.getLang();
+
+        // language rules
+        var use24Hour = lang === "es" || lang === "fr";
+        var useDayFirst = lang === "es" || lang === "fr";
+
+        // hide AM/PM if 24h format
+        if (sepSpan) {
+            sepSpan.innerHTML = "H<br>R";
+        }
+
+        var days = [
+            tvii.getLoc("vino.days.sun_short"),
+            tvii.getLoc("vino.days.mon_short"),
+            tvii.getLoc("vino.days.tue_short"),
+            tvii.getLoc("vino.days.wed_short"),
+            tvii.getLoc("vino.days.thu_short"),
+            tvii.getLoc("vino.days.fri_short"),
+            tvii.getLoc("vino.days.sat_short")
+        ];
 
         function pad(n) {
             return n < 10 ? "0" + n : n;
@@ -2512,24 +2556,42 @@ function initVinoHome() {
 
             var hours = local.getUTCHours();
             var minutes = local.getUTCMinutes();
+
+            var displayHours;
             var isPM = hours >= 12;
-            var hours12 = hours % 12;
-            if (hours12 === 0) hours12 = 12;
+
+            if (use24Hour) {
+                displayHours = pad(hours);
+            } else {
+                var hours12 = hours % 12;
+                if (hours12 === 0) hours12 = 12;
+
+                displayHours = pad(hours12);
+
+                if (sepSpan) {
+                    sepSpan.textContent = isPM ? "PM" : "AM";
+                }
+            }
 
             // Update date and day
             var month = pad(local.getUTCMonth() + 1);
             var dayNum = pad(local.getUTCDate());
-            var dayIndex = local.getUTCDay(); // 0=Sun, 6=Sat
+            var dayIndex = local.getUTCDay();
             var dayName = days[dayIndex];
 
-            dateSpan.textContent = month + "/" + dayNum;
-            daySpan.textContent = dayName;
-            sepSpan.textContent = isPM ? "PM" : "AM";
+            // ✅ locale date format
+            if (useDayFirst) {
+                dateSpan.textContent = dayNum + "/" + month; // DD/MM
+            } else {
+                dateSpan.textContent = month + "/" + dayNum; // MM/DD
+            }
 
-            // Update hour with blinking colon
+            daySpan.textContent = dayName;
+
+            // Update hour + minute
             var minsText = pad(minutes);
-            hourSpan.firstChild.nodeValue = pad(hours12); // updates the hour
-            hourSpan.lastChild.nodeValue = minsText; // updates the minute
+            hourSpan.firstChild.nodeValue = displayHours;
+            hourSpan.lastChild.nodeValue = minsText;
 
             // Toggle blinking colon
             colonSpan.style.visibility =
@@ -2541,15 +2603,14 @@ function initVinoHome() {
 
             // Add day-specific class
             if (dayIndex === 6) {
-                daySpan.classList.add("sat"); // Saturday
+                daySpan.classList.add("sat");
             } else if (dayIndex === 0) {
-                daySpan.classList.add("sun"); // Sunday
+                daySpan.classList.add("sun");
             }
-
         }
-        updateClock(); // Initial call
 
-        // Align first interval to the next full second
+        updateClock();
+
         var now = Date.now();
         var delay = 1000 - (now % 1000);
 
@@ -2558,6 +2619,7 @@ function initVinoHome() {
             window.clockInterval = setInterval(updateClock, 1000);
         }, delay);
     }
+
 
     function setupProgramTimer() {
         window.infoUpdInterval = setInterval(function () {
@@ -2613,6 +2675,7 @@ function initVinoHome() {
         }
 
         var chlogo = programDetails.find(".chlogo");
+        chlogo.removeClass("no-icon");
 
         if (program.attr("data-chlogo") && program.attr("data-chlogo") != "null") {
             var logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
@@ -2620,7 +2683,8 @@ function initVinoHome() {
             // Replace the part between "station/" and "/v2" with "60x34"
             logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
         } else {
-            logoSrc = "/img/noimg.png"
+            logoSrc = "/img/no-ch-logo.png";
+            chlogo.addClass("no-icon");
         }
 
         chlogo.off("error").on("error", function () {
@@ -2635,6 +2699,8 @@ function initVinoHome() {
 
         // === Otherwise, fetch new program details ===
         programDetails.hide();
+        programDetails.find(".program-airing-details").hide();
+        programDetails.find(".program-airing-image").hide();
         vino.loading_setIconRect(165, 180, 110, 110);
         vino.loading_setIconAppear(true);
         chlogo.show();
@@ -2652,41 +2718,66 @@ function initVinoHome() {
                 var programName = details.program.showName;
                 var programEpisode = details.program.episodeTitle;
 
-                var programDescription = details.program.description;
-                programDetails.find(".program-description > p").text(programDescription);
 
-                programDetails.find(".pname").text(programName);
+                var img = details.extra_program ? details.extra_program.image : null;
 
-                var hasYear = details.program.year && details.program.year.length;
-                var hasShowType = details.program.showType && details.program.showType.length;
-                var hasTVRating = details.program.rating && details.program.rating.length;
-                var hasCC = details.program.isCC;
-                var programDuration = details.program.duration;
+                var isValidImage =
+                    img && img.indexOf("/resource/img/generics/") === -1;
 
-                var parts = [];
+                if (isValidImage) {
+                    img = img.replace(/^.*?(\/image\/)/, "$1");
+                    img = img.replace(/\/\d+x\d+\//, "/426x240/");
+                } else if (details.program.showPicture) {
+                    //if show picture exists, set isValidImage to true
+                    isValidImage = true;
+                    img = "/image/show/426x240/" + details.program.showPicture;
+                }
 
-                if (hasYear) parts.push(details.program.year);
-                if (hasTVRating) parts.push(details.program.rating);
-                if (hasCC) parts.push("CC");
-                if (hasShowType) parts.push(details.program.showType);
-                parts.push(programDuration + "min")
+                var canSetDetailInfo = !isValidImage || Math.random() < 0.8;
 
-                var otherDetail = parts.join(" · ");
+                if (canSetDetailInfo) {
+                    var programDescription = details.program.description;
+                    programDetails.find(".program-description > p").text(programDescription);
 
-                programDetails.find(".chnum").text(otherDetail);
+                    programDetails.find(".pname").text(programName);
 
-                var programStart = tvii.parseLocalDateTime(details.program.start);
-                var programEnd = tvii.parseLocalDateTime(details.program.end);
+                    var hasYear = details.program.year && details.program.year.length;
+                    var hasShowType = details.program.showType && details.program.showType.length;
+                    var hasTVRating = details.program.rating && details.program.rating.length;
+                    var hasCC = details.program.isCC;
+                    var programDuration = details.program.duration;
 
-                var timeStr = formatAMPMWithDate(programStart, programEnd);
-                programDetails.find(".date").text(timeStr);
+                    var parts = [];
 
-                if (programEpisode) {
-                    programDetails.find(".channel-detail").removeClass("no-episode");
-                    programDetails.find(".pepisode").text(programEpisode);
+                    if (hasYear) parts.push(details.program.year);
+                    if (hasTVRating) parts.push(details.program.rating);
+                    if (hasCC) parts.push("CC");
+                    if (hasShowType) parts.push(details.program.showType);
+                    parts.push(programDuration + "min")
+
+                    var otherDetail = parts.join(" · ");
+
+                    programDetails.find(".chnum").text(otherDetail);
+
+                    var programStart = tvii.parseLocalDateTime(details.program.start);
+                    var programEnd = tvii.parseLocalDateTime(details.program.end);
+
+                    var timeStr = formatAMPMWithDate(programStart, programEnd);
+                    programDetails.find(".date").text(timeStr);
+
+                    if (programEpisode) {
+                        programDetails.find(".channel-detail").removeClass("no-episode");
+                        programDetails.find(".pepisode").text(programEpisode);
+                    } else {
+                        programDetails.find(".channel-detail").addClass("no-episode");
+                        programDetails.find(".pepisode").text("");
+                    }
+                    programDetails.find(".program-airing-details").show();
                 } else {
-                    programDetails.find(".channel-detail").addClass("no-episode");
-                    programDetails.find(".pepisode").text("");
+                    programDetails
+                        .find(".program-airing-image > .img")
+                        .css("background-image", "url(/images/cdn/tvp" + img + ")");
+                    programDetails.find(".program-airing-image").show();
                 }
 
                 requestMiiversePostProgPreview(episodeID);
@@ -2750,7 +2841,7 @@ function initVinoHome() {
             miiversePrev.find("span").addClass("placeholder");
             miiversePrev
                 .find("span")
-                .text("No posts for this program. Be the first!");
+                .text(tvii.getLoc("vino.home.olv.preview_no_posts"));
             showMiiversePostPreview(true);
             return;
         }
@@ -2761,12 +2852,12 @@ function initVinoHome() {
 
         if (isSpoiler) {
             miiversePrev.find("span").addClass("placeholder");
-            body = "Message marked as spoiler";
+            body = tvii.getLoc("vino.home.olv.preview_spoiler");
         }
 
         if (!body || body.length < 1) {
             miiversePrev.find("span").addClass("placeholder");
-            body = "Handwritten message";
+            body = tvii.getLoc("vino.home.olv.preview_handwritten");
         }
         miiversePrev.find("span").text(body);
 
@@ -2826,7 +2917,7 @@ function initVinoHome() {
                     miiversePrev.find("span").addClass("placeholder");
                     miiversePrev
                         .find("span")
-                        .text("No posts for this program. Be the first!");
+                        .text(tvii.getLoc("vino.home.olv.preview_no_posts"));
                     showMiiversePostPreview(true);
                     return;
                 }
@@ -2837,12 +2928,12 @@ function initVinoHome() {
 
                 if (isSpoiler) {
                     miiversePrev.find("span").addClass("placeholder");
-                    body = "Message marked as spoiler";
+                    body = tvii.getLoc("vino.home.olv.preview_spoiler");
                 }
 
                 if (!body || body.length < 1) {
                     miiversePrev.find("span").addClass("placeholder");
-                    body = "Handwritten message";
+                    body = tvii.getLoc("vino.home.olv.preview_handwritten");
                 }
                 miiversePrev.find("span").text(body);
 
@@ -2912,10 +3003,10 @@ function initVinoHome() {
                         title: $a.attr("data-prname-" + index),
                         startTime: start,
                         endTime: end,
+                        rating: $a.attr("data-prrating-" + index),
                         isNew: $a.attr("data-prnew-" + index) === "true",
                         isLive: $a.attr("data-prlive-" + index) === "true",
                         genre: $a.attr("data-prtype-" + index),
-                        rating: $a.attr("data-prrating-" + index),
                         index: index
                     };
                     break;
@@ -2994,6 +3085,7 @@ function initVinoHome() {
             genreEl.removeClass("adult_animated");
 
             var genreIDText = tvii.getProgramGenre(program.genre, program.rating);
+
             genreEl.addClass(genreIDText);
             genreEl.find("span").html(tvii.getLoc("vino.home.genre." + genreIDText))
 
@@ -3139,6 +3231,160 @@ function initVinoHome() {
 
     var isPrgmPageMoveDisabled = false;
 
+    function splitDescriptionSlides(det, fullText) {
+        var firstSlide = det.find(".program-detail-desc").first();
+        if (!firstSlide.length) return;
+
+        // remove previously generated slides
+        firstSlide.siblings(".program-detail-desc").remove();
+
+        var remainingText = fullText || "";
+        var lastInserted = firstSlide;
+
+        firstSlide.find("p").text("");
+
+        while (remainingText.length) {
+            var slide;
+
+            // use first slide if empty
+            if (!lastInserted.find("p").text()) {
+                slide = lastInserted;
+            } else {
+                slide = firstSlide.clone(true);
+                slide.find("p").text("");
+
+                // remove "Details" label in cloned slides
+                slide.find('[data-loc="vino.home.program.details_label"]').remove();
+
+                // insert after previous description slide
+                lastInserted.after(slide);
+                lastInserted = slide;
+            }
+
+            var p = slide.find("p")[0];
+            var text = remainingText;
+
+            // try full text first
+            p.textContent = text;
+
+            // fits fully → done
+            if (p.scrollHeight <= p.clientHeight) break;
+
+            var cut = text.length;
+
+            // shrink until fits
+            while (cut > 0) {
+                cut -= Math.ceil(text.length / 20);
+                if (cut < 1) cut = 1;
+
+                var candidate = text.substring(0, cut);
+
+                // snap to last whitespace so words don't break
+                var lastSpace = candidate.lastIndexOf(" ");
+                if (lastSpace > 0) {
+                    candidate = candidate.substring(0, lastSpace);
+                }
+
+                p.textContent = candidate;
+
+                if (p.scrollHeight <= p.clientHeight) {
+                    cut = candidate.length;
+                    break;
+                }
+            }
+
+            // move remainder to next slide
+            remainingText = text.substring(cut).trim();
+
+            // safety escape (avoid infinite loop)
+            if (cut <= 0) break;
+        }
+    }
+
+    function paginateActors(det, castList) {
+        var firstSlide = det.find(".program-actors").first();
+        if (!firstSlide.length) return;
+
+        var actorsPerSlide = 6;
+        var total = castList.length;
+
+        // remove previously generated slides
+        firstSlide.siblings(".program-actors").remove();
+
+        // clear first slide actors but keep "view all cast" link
+        firstSlide.find(".actor-container a:not(.actor-link)").remove();
+
+        var lastInserted = firstSlide;
+
+        for (var i = 0; i < total; i += actorsPerSlide) {
+            var slice = castList.slice(i, i + actorsPerSlide);
+            var slide;
+
+            if (i === 0) {
+                slide = firstSlide;
+            } else {
+                slide = firstSlide.clone(true);
+
+                // remove existing actor entries
+                slide.find(".actor-container a:not(.actor-link)").remove();
+
+                slide.find(".actor-link").remove();
+
+                // insert right after previous actor slide
+                lastInserted.after(slide);
+                lastInserted = slide;
+            }
+
+            var actorContainer = slide.find(".actor-container");
+
+            for (var j = 0; j < slice.length; j++) {
+                var member = slice[j];
+
+                var $a = $("<a>", {
+                    href: "javascript:void(0)",
+                    navi_target: ""
+                });
+
+                var bgUrl = "/img/noimg.png";
+
+                if (
+                    member.img &&
+                    member.img !== "https://www.tvpassport.com/resource/img/generics/null-person-sm.png"
+                ) {
+                    var idx = member.img.indexOf("/image/people/");
+                    var path = idx !== -1 ? member.img.substring(idx + 1) : null;
+
+                    if (path) {
+                        path = path.replace(/(\d+)x(\d+)/, "108x144");
+                        bgUrl = "/images/cdn/tvp/" + path;
+                    }
+                }
+
+                var imgContDiv = $("<div>").addClass("photo");
+                var $imgDiv = $("<div>").css("background-image", "url(" + bgUrl + ")");
+                var $name = $("<span>").text(member.name);
+
+                imgContDiv.append($imgDiv)
+                $a.append(imgContDiv).append($name);
+
+                actorContainer.append($a);
+            }
+        }
+
+        var sounds = [
+            "SE_WORD_A", "SE_WORD_E", "SE_WORD_I",
+            "SE_WORD_O", "SE_WORD_U", "SE_WORD_N"
+        ];
+
+        tvii.setActualClickListener($(".actor-container a:not(.actor-link)"), function () {
+            var sound = sounds[Math.floor(Math.random() * sounds.length)];
+            vino.soundPlayVolume(sound, 60);
+
+            alert(tvii.getLoc("vino.home.not_available_actor_feature"));
+        });
+    }
+
+
     function setupProgramPage(programObject) {
         //WithAnim already locks it but this gets called when it doesnt do animation
         //lock again
@@ -3153,15 +3399,15 @@ function initVinoHome() {
         vino.loading_setIconRect(360, 160, 120, 120);
         vino.loading_setIconAppear(true);
 
-        var htmlProgramDetails = $(".program-fulldetails-page-template").html();
-        det.html(htmlProgramDetails);
-        det.show();
-
         tvii.requestProgramDetails(
             programObject.programListingId,
             programObject.programChannelNum,
             programObject.programDate,
             function (details) {
+                var htmlProgramDetails = $(".program-fulldetails-page-template").html();
+                det.html(htmlProgramDetails);
+                det.show();
+
                 var prodet = det.find(".program-details");
 
                 /*var programListingID = details.program.listingId;
@@ -3178,16 +3424,20 @@ function initVinoHome() {
                 var programDuration = details.program.duration;
                 var programDescription = details.program.description;
 
+                var chlogo = prodet.find(".chlogo");
+
                 if (details.channel.logo) {
                     var logoSrc = "/images/cdn/tvp" + details.channel.logo;
                     logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
 
-                    var chlogo = prodet.find(".chlogo");
                     chlogo.on("error", function () {
                         chlogo.hide();
                     });
 
                     chlogo.attr("src", logoSrc)
+                } else {
+                    chlogo.attr("src", "/img/no-ch-logo.png");
+                    chlogo.addClass("no-icon");
                 }
 
                 var img = details.extra_program ? details.extra_program.image : null;
@@ -3206,11 +3456,9 @@ function initVinoHome() {
 
                 if (isValidImage) {
                     det.find(".program-image>img").attr("src", "/images/cdn/tvp" + img)
+                } else {
+                    det.find(".program-image-detail").remove();
                 }
-
-                /*if (programEpisode) {
-                    prodet.find(".program-description > span").text(programEpisode);
-                }*/
 
                 var parts = [];
 
@@ -3218,7 +3466,7 @@ function initVinoHome() {
                 if (hasTVRating) parts.push(details.program.rating);
                 if (hasCC) parts.push("CC");
 
-                det.find(".og-duration .text").text(programDuration + " minutes");
+                det.find(".og-duration .text").text(tvii.getLoc("vino.home.program.airing_duration.duration", programDuration));
 
                 if (hasShowType) {
                     det.find(".genre .text").text(details.program.showType);
@@ -3228,7 +3476,7 @@ function initVinoHome() {
 
                 var otherDetail = parts.join(" · ");
 
-                prodet.find(".prinfo .info").text(otherDetail);
+                prodet.find(".prinfo .info-other").text(otherDetail);
 
                 var tag = prodet.find(".tag");
 
@@ -3246,92 +3494,21 @@ function initVinoHome() {
                 }
 
                 if (details.extra_program) {
-                    if (details.extra_program.description) {
-                        det.find(".parent-description p").text(details.extra_program.description);
+                    if (details.extra_program.description && details.extra_program.description != programDescription) {
+                        splitDescriptionSlides(det, details.extra_program.description);
                     } else {
-                        det.find(".parent-description p").addClass("no-data");
-                        det.find(".parent-description p").text("No available detailed information.")
+                        det.find(".program-detail-desc").remove();
                     }
 
-                    if (details.extra_program.cast) {
-                        var maxCast = Math.min(details.extra_program.cast.length, 6);
-                        if (maxCast < 1) {
-                            var p = $("<p>")
-                            p.text("No actor info available.")
-                            det.find(".actor-container").append(p);
-                        } else {
-                            for (var i = 0; i < maxCast; i++) {
-                                var member = details.extra_program.cast[i];
-
-                                var $a = $("<a>", {
-                                    href: "javascript:void(0)",
-                                    navi_target: ""
-                                });
-
-                                var url = member.img;
-                                var bgUrl;
-
-                                /* case 1: null person image */
-                                if (url === "https://www.tvpassport.com/resource/img/generics/null-person-sm.png") {
-                                    bgUrl = "/img/default_no_actor.png";
-                                } else {
-                                    var idx = url.indexOf("/image/people/");
-                                    var path = idx !== -1 ? url.substring(idx + 1) : null;
-
-                                    if (path) {
-                                        // find resolution like 135x180
-                                        var match = path.match(/(\d+)x(\d+)/);
-
-                                        if (match) {
-                                            var origW = parseInt(match[1], 10);
-                                            var origH = parseInt(match[2], 10);
-
-                                            var newW = 108;
-                                            var newH = Math.round(origH * (newW / origW));
-
-                                            path = path.replace(
-                                                origW + "x" + origH,
-                                                newW + "x" + newH
-                                            );
-                                        }
-
-                                        bgUrl = "/images/cdn/tvp/" + path;
-                                    }
-                                }
-
-                                var $imgDiv = $("<div>").css("background-image", "url(" + bgUrl + ")");
-
-
-                                var $name = $("<span>").text(member.name);
-
-                                $a.append($imgDiv).append($name);
-                                $a.on("click", function () {
-                                    var sounds = [
-                                        "SE_WORD_A",
-                                        "SE_WORD_E",
-                                        "SE_WORD_I",
-                                        "SE_WORD_O",
-                                        "SE_WORD_U",
-                                        "SE_WORD_N"
-                                    ];
-
-                                    var sound = sounds[Math.floor(Math.random() * sounds.length)];
-                                    vino.soundPlayVolume(sound, 60);
-
-                                    alert("The function to see actor info\nis not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun");
-                                });
-
-                                det.find(".actor-container").append($a);
-                            }
-                        }
+                    if (details.extra_program.cast && details.extra_program.cast.length) {
+                        paginateActors(det, details.extra_program.cast);
+                    } else {
+                        det.find(".program-actors").remove();
                     }
+
                 } else {
-                    det.find(".parent-description p").addClass("no-data");
-                    det.find(".parent-description p").text("No available detailed information.")
-
-                    var p = $("<p>")
-                    p.text("No actor info available.")
-                    det.find(".actor-container").append(p);
+                    det.find(".program-detail-desc").remove();
+                    det.find(".program-actors").remove();
                 }
 
                 prodet.find(".program-description > p").text(programDescription);
@@ -3371,6 +3548,7 @@ function initVinoHome() {
                 var timeStr = formatAMPMWithDate(programStart, programEnd);
                 prodet.find(".date").text(timeStr);
 
+                tvii.templates.setUpLocHTML();
                 setProgramDetailsListener();
 
                 vino.loading_setIconAppear(false);
@@ -3516,26 +3694,39 @@ function initVinoHome() {
     }
 
     function setProgramDetailsListener() {
-        tvii.setClassHoverToEls(
-            $(
-                ".next-page, .prev-page"
-            )
-        );
+        tvii.setClassHoverToEls($(".next-page, .prev-page"));
 
         var $container = det.find(".content");
         var $prev = det.find(".prev-page");
         var $next = det.find(".next-page");
 
-        var pageWidth = 854;
-        var maxPages = 3;
+        var segmentWidth = 427; // each scroll segment
+        var visibleWidth = 854; // container visible area
 
         var isDragging = false;
         var startX = 0;
         var scrollStart = 0;
 
+        function getMaxScroll() {
+            return Math.max($container[0].scrollWidth - visibleWidth, 0);
+        }
+
+        // snap scroll to nearest segment
+        function snapToSegment(scrollLeft) {
+            var segment = Math.round(scrollLeft / segmentWidth);
+            return segment * segmentWidth;
+        }
+
         function updateButtons() {
             var scrollLeft = $container.scrollLeft();
-            var maxScroll = $container[0].scrollWidth - $container.outerWidth();
+            var maxScroll = getMaxScroll();
+
+            // if content fits inside visible width → no scrolling needed
+            if ($container[0].scrollWidth <= visibleWidth) {
+                $prev.hide();
+                $next.hide();
+                return;
+            }
 
             if (scrollLeft <= 0) {
                 $prev.hide();
@@ -3543,7 +3734,7 @@ function initVinoHome() {
                 $prev.show();
             }
 
-            if (scrollLeft >= maxScroll) {
+            if (scrollLeft >= maxScroll - 1) {
                 $next.hide();
             } else {
                 $next.show();
@@ -3557,6 +3748,9 @@ function initVinoHome() {
             $("body").removeClass("no-select");
         }
 
+        // ========================
+        // PREV BUTTON
+        // ========================
         $prev.on("click", function (e) {
             if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
 
@@ -3566,16 +3760,23 @@ function initVinoHome() {
             if (e.originalEvent && !vino.navi_getRect()) {
                 vino.lyt_startTouchEffect();
             }
+
             vino.soundPlayVolume("SE_MOVEPAGE_PLAY", 30);
 
-            var target = Math.max($container.scrollLeft() - pageWidth, 0);
+            var current = $container.scrollLeft();
+            var target = Math.max(current - segmentWidth, 0);
 
-            $container.animate({ scrollLeft: target }, 350, function () {
+            target = snapToSegment(target);
+
+            $container.animate({ scrollLeft: target }, 200, function () {
                 updateButtons();
                 isPrgmPageMoveDisabled = false;
             });
         });
 
+        // ========================
+        // NEXT BUTTON
+        // ========================
         $next.on("click", function (e) {
             if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
 
@@ -3585,17 +3786,24 @@ function initVinoHome() {
             if (e.originalEvent && !vino.navi_getRect()) {
                 vino.lyt_startTouchEffect();
             }
+
             vino.soundPlayVolume("SE_MOVEPAGE_PLAY", 30);
 
-            var maxScroll = $container[0].scrollWidth - $container.outerWidth();
-            var target = Math.min($container.scrollLeft() + pageWidth, maxScroll);
+            var maxScroll = getMaxScroll();
+            var current = $container.scrollLeft();
+            var target = Math.min(current + segmentWidth, maxScroll);
 
-            $container.animate({ scrollLeft: target }, 350, function () {
+            target = snapToSegment(target);
+
+            $container.animate({ scrollLeft: target }, 200, function () {
                 updateButtons();
                 isPrgmPageMoveDisabled = false;
             });
         });
 
+        // ========================
+        // DRAG SCROLLING
+        // ========================
         $container.on("mousedown", function (e) {
             if (isPrgmPageMoveDisabled) return;
 
@@ -3607,28 +3815,47 @@ function initVinoHome() {
 
             $(document).on("mousemove.programDrag", function (e) {
                 if (!isDragging) return;
+
                 var delta = startX - e.pageX;
                 $container.scrollLeft(scrollStart + delta);
             });
 
-            $(document).on("mouseup.programDrag", function () {
+            $(document).on("mouseup.programDrag", function (e) {
                 if (!isDragging) return;
 
                 var scrollLeft = $container.scrollLeft();
-                var delta = scrollLeft - scrollStart;
+                var maxScroll = getMaxScroll();
 
-                var page = Math.round(scrollStart / pageWidth);
-                if (delta > 50) page++;
-                else if (delta < -50) page--;
+                // how far user dragged
+                var dragDistance = startX - e.pageX;
 
-                if (page < 0) page = 0;
-                if (page > maxPages - 1) page = maxPages - 1;
+                // how sensitive snapping is (lower = easier)
+                var snapThreshold = segmentWidth * 0.15;
+
+                var target;
+
+                if (Math.abs(dragDistance) > snapThreshold) {
+                    // move to next or prev segment
+                    if (dragDistance > 0) {
+                        // dragged left → next
+                        target = Math.ceil(scrollLeft / segmentWidth) * segmentWidth;
+                    } else {
+                        // dragged right → prev
+                        target = Math.floor(scrollLeft / segmentWidth) * segmentWidth;
+                    }
+                } else {
+                    // not enough movement → snap back to nearest
+                    target = snapToSegment(scrollLeft);
+                }
+
+                if (target < 0) target = 0;
+                if (target > maxScroll) target = maxScroll;
 
                 isPrgmPageMoveDisabled = true;
 
                 $container.animate(
-                    { scrollLeft: page * pageWidth },
-                    300,
+                    { scrollLeft: target },
+                    200,
                     function () {
                         isPrgmPageMoveDisabled = false;
                         updateButtons();
@@ -3638,7 +3865,13 @@ function initVinoHome() {
                 stopDragging();
             });
         });
+
+        // ========================
+        // INITIAL BUTTON STATE
+        // ========================
+        updateButtons();
     }
+
 
 
     //--------Posting/"Miiverse" as it is codenamed here, since it used to be actual Miiverse posts-------
@@ -3893,38 +4126,65 @@ function initVinoHome() {
     }
 
     function miiverseDateFormat(dateString) {
+        var lang = tvii.getLang();
         var offsetSeconds = tvii.getUtcOffset();
+
         // "now" also adjusted by offset
         var now = new Date(new Date().getTime() + offsetSeconds * 1000);
         var date = parseDateWithOffset(dateString, offsetSeconds);
         var diffSeconds = Math.floor((now - date) / 1000);
 
         if (diffSeconds < 60) {
-            return "Less than a minute ago";
+            return tvii.getLoc("vino.home.olv.crosspost.post.time.less_than_minute_ago");
         } else if (diffSeconds < 120) {
-            return "A minute ago";
+            return tvii.getLoc("vino.home.olv.crosspost.post.time.minute_ago");
         } else if (diffSeconds < 3600) {
-            return Math.floor(diffSeconds / 60) + " minutes ago";
+            return tvii.getLoc(
+                "vino.home.olv.crosspost.post.time.minutes_ago",
+                Math.floor(diffSeconds / 60)
+            );
         } else if (diffSeconds < 7200) {
-            return "An hour ago";
+            return tvii.getLoc("vino.home.olv.crosspost.post.time.hour_ago");
         } else if (diffSeconds < 86400) {
-            return Math.floor(diffSeconds / 3600) + " hours ago";
+            return tvii.getLoc(
+                "vino.home.olv.crosspost.post.time.hours_ago",
+                Math.floor(diffSeconds / 3600)
+            );
         } else if (diffSeconds < 172800) {
-            return "A day ago";
+            return tvii.getLoc("vino.home.olv.crosspost.post.time.day_ago");
         } else if (diffSeconds < 604800) {
-            return Math.floor(diffSeconds / 86400) + " days ago";
-        } else {
-            var m = date.getMonth() + 1;
-            var d = date.getDate();
-            var y = date.getFullYear();
-            var hh = date.getHours();
-            var mm = date.getMinutes();
-            if (m < 10) m = "0" + m;
-            if (d < 10) d = "0" + d;
-            if (hh < 10) hh = "0" + hh;
-            if (mm < 10) mm = "0" + mm;
-            return m + "/" + d + "/" + y + " " + hh + ":" + mm;
+            return tvii.getLoc(
+                "vino.home.olv.crosspost.post.time.days_ago",
+                Math.floor(diffSeconds / 86400)
+            );
         }
+
+        // ===== fallback formatting =====
+        var m = date.getMonth() + 1;
+        var d = date.getDate();
+        var y = date.getFullYear();
+        var hh = date.getHours();
+        var mm = date.getMinutes();
+
+        if (m < 10) m = "0" + m;
+        if (d < 10) d = "0" + d;
+        if (mm < 10) mm = "0" + mm;
+
+        // ENGLISH → 12h + AM/PM + month first
+        if (lang === "en") {
+            var ampm = hh >= 12 ? "PM" : "AM";
+
+            hh = hh % 12;
+            if (hh === 0) hh = 12;
+            if (hh < 10) hh = "0" + hh;
+
+            return m + "/" + d + "/" + y + " " + hh + ":" + mm + " " + ampm;
+        }
+
+        // NON-EN → 24h + day first (Spanish/French)
+        if (hh < 10) hh = "0" + hh;
+
+        return d + "/" + m + "/" + y + " " + hh + ":" + mm;
     }
 
     var pid = tvii.getServerPID();
@@ -3990,7 +4250,8 @@ function initVinoHome() {
                     $(".miiverse-refresh").removeClass("disabled");
                     $(".miiverse-doodle-default").removeClass("disabled");
                     miiverseContainer.append(
-                        $("<div>").addClass("no-posts").html("No posts yet.<br>Write your first post!")
+                        $("<div>").addClass("no-posts").html(
+                            tvii.getLoc("vino.home.olv.no_posts"))
                     );
                     disableTopBotHeaders(false);
                     return;
@@ -4061,6 +4322,151 @@ function initVinoHome() {
         loadMiiversePosts(null, true);
     }
 
+    function openMiiUserDetailScreen(pid) {
+        disableTopBotHeaders(true);
+
+        detachMiiverseScrollListener();
+        miiverseContainer.data("makeScrollContainer").stop();
+        miivContScr = miiverseContainer.scrollTop();
+        miiverseContainer.hide();
+        var html = $(".miiverse-user-details-template").html();
+        $(".miiverse-user-details").html(html).show();
+        tvii.templates.setUpLocHTML();
+        setMiiUserDetailListener(pid);
+    }
+
+    var miiUserDetailInterval = null;
+
+    function setMiiUserDetailListener(pid) {
+        var miiDetModal = $(".miiverse-user-details")
+
+        tvii.sendXHR("GET", "/api/v1/socials/getUserData/" + pid, function (data) {
+            var user_data = JSON.parse(data);
+
+            var img1 = $("<img>").attr("src", "/api/v1/miis.png?width=130&texResolution=128&expression=normal&data="
+                + encodeURIComponent(user_data.mii_data) + "&type=face").hide();
+            var img2 = $("<img>").attr("src", "/api/v1/miis.png?width=130&texResolution=128&expression=blink&data="
+                + encodeURIComponent(user_data.mii_data) + "&type=face").hide();
+
+            miiDetModal.append(img1)
+            miiDetModal.append(img2)
+            miiDetModal.find(".mii").attr("src", img1.attr("src"));
+            miiDetModal.find(".mii").on("mousedown", function () {
+                vino.soundPlayVolume("SE_WORD_MII_1", 30)
+            });
+
+            clearInterval(miiUserDetailInterval);
+            miiUserDetailInterval = setInterval(function () {
+                // change to blink image
+                miiDetModal.find(".mii").attr("src", img2.attr("src"));
+
+                // revert after 0.3s
+                setTimeout(function () {
+                    vino.soundPlayVolume("SE_WORD_MII_3", 30)
+                    miiDetModal.find(".mii").attr("src", img1.attr("src"));
+                }, 300);
+
+            }, 3000);
+
+            miiDetModal.find(".display-name").text(user_data.mii_name)
+            miiDetModal.find(".nnid").text(user_data.user_id)
+            miiDetModal.find(".post-count").text(tvii.getLoc("vino.home.olv.modal.post_count", user_data.post_count));
+
+            if (user_data.latest_post_id && vino.olv_isEnabled() && vino.olv_getHostName() === "https://api.olv.pretendo.cc") {
+                miiDetModal.find(".miiverse-jump").attr("data-post-id", user_data.latest_post_id)
+                miiDetModal.find(".miiverse-jump").on("click", function (e) {
+                    if (isHeaderButtonBlocked) return;
+                    if ($(this).hasClass("disabled")) return;
+
+                    if (e.originalEvent) {
+                        if (!vino.navi_getRect()) {
+                            vino.lyt_startTouchEffect();
+                        }
+                    }
+
+                    vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+                    vino.jumpToMiiversePostId($(this).attr("data-post-id"), true);
+                })
+                miiDetModal.find(".miiverse-jump").removeClass("disabled");
+            }
+
+            var my_pid = vino.act_getPid(tvii.userSlot);
+            if (parseInt(pid, 10) === my_pid) {
+                miiDetModal.find(".friend-status .myself").show();
+            } else {
+                var fl = vino.fp_getFriendList();
+
+                if (fl) {
+                    var list = fl.split(",");
+                    var isAdded = false;
+
+                    for (var i = 0; i < list.length; i++) {
+                        var friendPid = parseInt(list[i], 10);
+
+                        if (friendPid === parseInt(pid, 10)) {
+                            isAdded = true;
+                            miiDetModal.find(".friend-status .already").show();
+                            break;
+                        }
+                    }
+                    if (!isAdded) {
+                        miiDetModal.find(".friend-status .add").show();
+                    }
+                } else {
+                    miiDetModal.find(".friend-status .add").show();
+                }
+            }
+
+
+            miiDetModal.find(".friend-status").on("click", function (e) {
+                if (isHeaderButtonBlocked) return;
+                if ($(this).hasClass("disabled")) return;
+
+                if (miiDetModal.find(".friend-status .add").is(":visible")) {
+                    if (e.originalEvent) {
+                        if (!vino.navi_getRect()) {
+                            vino.lyt_startTouchEffect();
+                        }
+                    }
+
+                    vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+
+                    if (confirm(tvii.getLoc("vino.home.olv.modal.ask_adding_friend"))) {
+                        vino.exitForce();
+                    }
+                }
+            })
+
+            disableTopBotHeaders(false);
+        }, function () {
+            disableTopBotHeaders(false);
+        });
+        //Back button on post modal
+        miiDetModal.find(".btn-1").on("click", function (e) {
+            if (isHeaderButtonBlocked) return;
+            if ($(this).hasClass("disabled")) return;
+
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+            }
+
+            vino.soundPlayVolume("SE_WAVE_CANCEL", 30);
+
+            clearInterval(miiUserDetailInterval);
+            miiDetModal.empty();
+            miiDetModal.hide();
+            miiDetModal = null;
+            //after disposing detail modal
+            vino.requestGarbageCollect();
+
+            miiverseContainer.show();
+            miiverseContainer.scrollTop(miivContScr);
+            attachMiiverseScrollListener();
+        });
+    }
+
     function buildPostElement(post) {
         var miiData = post.mii_data;
         var postId = post.post_id;
@@ -4102,11 +4508,15 @@ function initVinoHome() {
             return $("<div>")
                 .addClass("mii")
                 .append(miiImg)
+                .attr("data-user-pid", post.pid)
                 .attr("tabindex", 0)
                 .attr("navi_target", "")
                 .attr("navi_no_reset", "")
                 .on("mousedown", function () {
                     vino.soundPlayVolume("SE_WORD_MII", 30);
+                })
+                .on("click", function () {
+                    openMiiUserDetailScreen(miiEl.attr("data-user-pid"));
                 });
         })();
 
@@ -4177,7 +4587,7 @@ function initVinoHome() {
             .addClass("spoiler")
             .attr("navi_target", "")
             .attr("tabindex", 0)
-            .text("Show Spoiler");
+            .text(tvii.getLoc("vino.home.olv.crosspost.post.view_spoiler"));
 
         if (isSpoiler) {
             (function ($spoilerbut, $postRCont) {
@@ -4192,18 +4602,50 @@ function initVinoHome() {
             })(spoilerBut, postRCont);
         }
 
+        var yeahText;
+        var unyeahText;
+
+        switch (feeling) {
+            case 0:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.remove");
+                break;
+            case 1:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.happy");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.happy.remove");
+                break;
+            case 2:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.like");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.like.remove");
+                break;
+            case 3:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.surprised");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.surprised.remove");
+                break;
+            case 4:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.frustrated");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.frustrated.remove");
+                break;
+            case 5:
+                yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.puzzled");
+                unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.puzzled.remove");
+                break;
+            default:
+                break;
+        }
+
         var empathyAct = $("<button>")
             .addClass("yeah")
             .attr("navi_target", "")
             .attr("navi_no_reset", "")
             .attr("tabindex", 0)
-            .text("Yeah!");
+            .text(yeahText);
 
         if (isMyPost) {
             empathyAct.addClass("self");
             empathyAct.addClass("disabled");
         } else if (hasYeahed) {
-            empathyAct.text("Unyeah!");
+            empathyAct.text(unyeahText);
             empathyAct.addClass("yeahed");
             yeahCount.addClass("added");
         }
@@ -4238,7 +4680,7 @@ function initVinoHome() {
                                     var current =
                                         parseInt($yeahCount.text(), 10) || 0;
                                     $yeahCount.text(current - 1);
-                                    $empathyAct.text("Yeah!");
+                                    $empathyAct.text(yeahText);
                                     $empathyAct.removeClass("yeahed");
                                     $yeahCount.removeClass("added");
                                 }
@@ -4248,7 +4690,7 @@ function initVinoHome() {
                         return;
                     }
 
-                    vino.soundPlayVolume("SE_REMOTE_FINISH2", 30);
+                    vino.soundPlayVolume("SE_FAVORITE_TOUCH_OFF", 30);
 
                     tvii.posts.addEmpathyToPost(
                         false,
@@ -4258,7 +4700,7 @@ function initVinoHome() {
                                 var current =
                                     parseInt($yeahCount.text(), 10) || 0;
                                 $yeahCount.text(current + 1);
-                                $empathyAct.text("Unyeah!");
+                                $empathyAct.text(unyeahText);
                                 $empathyAct.addClass("yeahed");
                                 $yeahCount.addClass("added");
                             }
@@ -4273,7 +4715,7 @@ function initVinoHome() {
             .addClass("doodle")
             .attr("tabindex", 0)
             .attr("navi_target", "")
-            .text("Doodle");
+            .text(tvii.getLoc("vino.home.olv.crosspost.post.doodlebut"));
 
         (function (screenshot) {
             doodleButton.on("mousedown", function () {
@@ -4316,7 +4758,7 @@ function initVinoHome() {
                 }
                 vino.soundPlayVolume("SE_WAVE_OK_TOUCH_OFF", 30);
                 alert(
-                    "This function is currently not available\nsince posts arent being crossposted\nto Miiverse for now."
+                    tvii.getLoc("vino.home.olv.crosspost.error.no_miiverse_yet")
                 );
             });
         })(postId);
@@ -4353,6 +4795,7 @@ function initVinoHome() {
 
         var olvDoodleModalHtml = $(".miiverse-doodle-modal-template").html();
         $(".miiverse-doodle-modal").html(olvDoodleModalHtml).show();
+        tvii.templates.setUpLocHTML();
         setMiiverseCanvasListener(screenshot);
     }
 
@@ -4552,7 +4995,7 @@ function initVinoHome() {
 
             var text = $(".miiverse-doodle-modal .comment textarea").val();
             if (!text || !text.length) {
-                alert("Please write a message.");
+                alert(tvii.getLoc("vino.home.olv.crosspost.post.input_requiered"));
                 disableTopBotHeaders(false);
                 $(this).removeClass("disabled");
                 return;
@@ -4680,7 +5123,7 @@ function initVinoHome() {
                 currentColor = custom;
                 erasing = false;
             } else {
-                alert('Please input a correct hex color.\nUse #RRGGBB or #RGB.');
+                alert(tvii.getLoc("vino.home.olv.crosspost.post.doodle_color_message"));
             }
         });
 
@@ -4722,7 +5165,7 @@ function initVinoHome() {
             }
 
             if (didUserDraw()) {
-                if (!confirm("Are you sure you want to cancel?\n\nYour drawing and the history (undo/redo)\nwill be cleared.")) {
+                if (!confirm(tvii.getLoc("vino.home.olv.crosspost.post.doodle_confirm_reset"))) {
                     return;
                 }
             }
@@ -4749,23 +5192,25 @@ function initVinoHome() {
         //End of doodling
     }
 
+    //Preloaded Mii feeling icons on RAM at startup
+    var miiData = vino.act_getMiiData(tvii.userSlot);
+
+    // Preload feeling images into an array
+    var feelImgs = [];
+    for (var i = 0; i <= 5; i++) {
+        var img = new Image();
+        img.src =
+            "/api/v1/miis.png?width=68&expression=" +
+            getFeelingQueryFromPostXml(i) +
+            "&data=" +
+            encodeURIComponent(miiData) +
+            "&type=face";
+        feelImgs[i] = img;
+    }
+
     function setMiiversePostModalListener() {
         //MIIVERSE MODAL FUNCTIONALITY
         var miiverseModal = $(".miiverse-post-modal");
-        var miiData = vino.act_getMiiData(tvii.userSlot);
-
-        // Preload feeling images into an array
-        var feelImgs = [];
-        for (var i = 0; i <= 5; i++) {
-            var img = new Image();
-            img.src =
-                "/api/v1/miis.png?width=68&expression=" +
-                getFeelingQueryFromPostXml(i) +
-                "&data=" +
-                encodeURIComponent(miiData) +
-                "&type=face";
-            feelImgs[i] = img;
-        }
 
         // Attach click handler
         miiverseModal
@@ -4835,9 +5280,12 @@ function initVinoHome() {
         miiverseModal.find(".spoiler-button input").on("change", function (e) {
             if (!e.originalEvent) return; // ignore script-triggered
 
+            var p = $(this).parent();
             if (this.checked) {
+                p.addClass("checked");
                 vino.soundPlayVolume("SE_WAVE_CHECKBOX_CHECK", 30);
             } else {
+                p.removeClass("checked");
                 vino.soundPlayVolume("SE_WAVE_CHECKBOX_UNCHECK", 30);
             }
         });
@@ -4893,7 +5341,6 @@ function initVinoHome() {
             miiverseModal.empty();
             miiverseModal.hide();
             miiverseModal = null;
-            feelImgs = null;
 
             vino.requestGarbageCollect();
 
@@ -4954,7 +5401,7 @@ function initVinoHome() {
             if (postType === "body") {
                 var text = miiverseModal.find(".textarea-text-input").val();
                 if (!text || !text.length) {
-                    alert("Please write a message.");
+                    alert(tvii.getLoc("vino.home.olv.crosspost.post.input_requiered"));
                     lockPostModal(false);
                     return;
                 }
@@ -4978,7 +5425,7 @@ function initVinoHome() {
                 //var painting = vino.memo_getImageTgaCompressed();
                 var painting = vino.memo_getImagePng();
                 if (!painting || !painting.length) {
-                    alert("Please draw something.");
+                    alert(tvii.getLoc("vino.home.olv.crosspost.post.memo_requiered"));
                     lockPostModal(false);
                     return;
                 }
@@ -5011,7 +5458,6 @@ function initVinoHome() {
                     miiverseModal.empty();
                     miiverseModal.hide();
                     miiverseModal = null;
-                    feelImgs = null;
 
                     vino.requestGarbageCollect();
 
@@ -5045,9 +5491,10 @@ function initVinoHome() {
         var olvPostModalHtml = $(".miiverse-post-modal-template").html();
         $(".miiverse-post-modal").html(olvPostModalHtml);
 
-        var programName = headOlv.attr("data-olv-prname")
+        var programName = headOlv.attr("data-olv-prname");
+        tvii.templates.setUpLocHTML();
         $(".miiverse-post-modal .dialog-container .popup-header").text(
-            'Post about "' + programName + '"'
+            tvii.getLoc("vino.home.olv.crosspost.post.window_title", programName)
         );
         setMiiversePostModalListener();
         $(".miiverse-post-modal").show();

@@ -20,6 +20,7 @@ const middleware = async (
     const serviceToken = parseServiceToken(req);
 
     if (
+        !serviceToken ||
         !serviceToken.pid ||
         !serviceToken.serial_number ||
         !serviceToken.access_key ||
@@ -29,9 +30,9 @@ const middleware = async (
         //Were gonna assume the user has an outdated Rose Patcher pre-token update
         //Redirect to screen to update Rosé Patcher
         return res
-            .status(400)
+            .contentType("text/html")
             .sendFile(
-                join(__dirname, "..", "..", "pages", "error", "pc_en.html")
+                join(__dirname, "..", "..", "pages", "error", "invalidToken.html")
             );
     }
 
@@ -63,10 +64,6 @@ const middleware = async (
         | "stg"
         | "prod";
 
-    const account = await db("account").where("pid", serviceToken.pid).first();
-
-    const accountEnv = account?.env ?? whitelistEnv;
-
     const allowedEnvs: Record<"dev" | "stg" | "prod", string[]> = {
         dev: ["dev", "stg", "prod"],
         stg: ["stg", "prod"],
@@ -80,7 +77,7 @@ const middleware = async (
             environment
         );
         return res
-            .status(200)
+            .contentType("text/html")
             .sendFile(
                 join(
                     __dirname,

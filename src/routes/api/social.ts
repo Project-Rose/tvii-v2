@@ -4,7 +4,7 @@ import { env } from "../../env.ts";
 import crypto from "crypto";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
-import {db} from "../../utils/db.ts";
+import { db } from "../../utils/db.ts";
 import { TwitterApi } from "twitter-api-v2";
 
 // Key must be 32 bytes for AES-256
@@ -95,6 +95,10 @@ import {
     ObjectCannedACL,
     PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import Redis from "ioredis";
+import * as cheerio from "cheerio";
+
+const redis = new Redis();
 
 // Create S3 client for MinIO
 const s3 = new S3Client({
@@ -148,6 +152,102 @@ router.post(
     }
 );
 
+router.get(
+    "/getUserData/:pid",
+    async (req: Request, res: Response): Promise<any> => {
+        try {
+            const pid = req.params.pid!;
+            if (!pid) return res.status(400).json({ error: "Missing pid" });
+
+            const account = await db("account")
+                .where({ pid })
+                .first();
+
+            if (!account) {
+                return res.status(404).json({ error: "Account not found" });
+            }
+
+            const postCountRow = await db("posts")
+                .where({ pid })
+                .count("* as count")
+                .first();
+
+            const post_count = Number(postCountRow?.count || 0);
+
+            // ============================
+            // 3️⃣ GET MII USER ID (cache)
+            // ============================
+            const miiCacheKey = `user:${pid}:cached_data`;
+            let user_id: string | null = null;
+            let latest_post_id: string | null = null;
+
+            const cachedUserData = await redis.get(miiCacheKey);
+
+            if (cachedUserData) {
+                user_id = JSON.parse(cachedUserData).user_id;
+                latest_post_id = JSON.parse(cachedUserData).latest_post_id;
+            } else {
+                try {
+                    const miiResp = await fetch(
+                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${pid}&api_id=1`
+                    );
+
+                    if (miiResp.ok) {
+                        const miiData = await miiResp.json() as any;
+                        user_id = miiData?.user_id || null;
+                    }
+
+                } catch (err) {
+                    console.error("Mii fetch error:", err);
+                }
+
+                try {
+                    const juxtResp = await fetch(
+                        `https://juxt.pretendo.network/users/${pid}`
+                    );
+
+                    if (juxtResp.ok) {
+                        const html = await juxtResp.text();
+                        const $ = cheerio.load(html);
+
+                        // first post wrapper
+                        const postWrapper = $(".posts-wrapper").first();
+
+                        if (postWrapper.length) {
+                            latest_post_id = postWrapper.attr("id") || null;
+                        }
+                    }
+
+                    await redis.set(
+                        miiCacheKey,
+                        JSON.stringify({ user_id, latest_post_id }),
+                        "EX",
+                        60 * 60 // 1 hour
+                    );
+                } catch (err) {
+                    console.error("Juxt scrape error:", err);
+                }
+            }
+
+            if (pid == "1657427234") {
+                user_id = "??????????"
+            }
+
+            return res.json({
+                mii_name: account.mii_name,
+                mii_data: account.mii_data,
+                user_id,
+                latest_post_id,
+                post_count
+            });
+
+        } catch (error) {
+            console.error("/getUserData error:", error);
+            return res.status(500).json({ error: "Internal server error." });
+        }
+    }
+);
+
 router.post(
     "/postsAlt",
     upload.none(),
@@ -170,7 +270,7 @@ router.post(
             const userSettings = await db("settings")
                 .where({ pid: account.pid })
                 .first();
-                
+
             let bskyAgent = null;
             let resumedSession = null;
 
@@ -578,8 +678,8 @@ router.get("/postsAlt", async (req: Request, res: Response): Promise<any> => {
                 mii_name: string | null;
                 mii_data: string | null;
             }[] = post.empathy_givers
-                ? JSON.parse(post.empathy_givers)
-                : [];
+                    ? JSON.parse(post.empathy_givers)
+                    : [];
 
             return {
                 post_id: post.post_id,

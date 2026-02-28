@@ -35,7 +35,7 @@ if (typeof lang === "string") {
 
 </head>
 
-<body data-pid="<%- pid %>" data-country="<%- country %>" data-region="<%- region %>">
+<body data-pid="<%- pid %>" data-lang="<%= lang %>" data-country="<%- country %>" data-region="<%- region %>">
   <!--preload some important assets -->
   <img style="display: none" src="/img/button-bg.png" width="0" height="0" />
   <img style="display: none" src="/img/button-bg-black.png" width="0" height="0" />
@@ -106,9 +106,9 @@ if (typeof lang === "string") {
           <div class="channel-container"></div>
 
           <div class="channel-search-container">
-            <p>To search for more channels, type the channel number here.</p>
+            <p data-loc="vino.setup.screen4.guide1"></p>
             <input navi_target navi_no_reset class="chnumber" data-loc-attr='{"vino_ok_text":"vino.search"}' type="number" maxlength="6">
-            <p>You can also search them by name here.</p>
+            <p data-loc="vino.setup.screen4.guide2"></p>
             <input navi_target navi_no_reset class="chname" type="text" vino_suggest data-loc-attr='{"vino_ok_text":"vino.search"}'>
           </div>
 

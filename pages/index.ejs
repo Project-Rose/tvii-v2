@@ -35,7 +35,14 @@ if (typeof lang === "string") {
 
 </head>
 
-<body data-pid="<%- pid %>" data-country="<%- country %>" data-tv-provider-tz="<%- tz_name %>" data-region="<%- region %>" data-utc-offset="<%- utc_offset %>" data-tv-provider-id="<%- tv_provider_id %>">
+<body data-pid="<%- pid %>" data-lang="<%= lang %>" data-country="<%- country %>" data-tv-provider-tz="<%- tz_name %>" data-region="<%- region %>" data-utc-offset="<%- utc_offset %>" data-tv-provider-id="<%- tv_provider_id %>">
+
+  <img style="display: none" src="/img/feeling_sprite.png" width="0" height="0" />
+  <img style="display: none" src="/img/spoiler-button.png" width="0" height="0" />
+  <img style="display: none" src="/img/bg-postm-bar.png" width="0" height="0" />
+  <img style="display: none" src="/img/bg_bar_purple.png" width="0" height="0" />
+  <img style="display: none" src="/img/bg_bar_red.png" width="0" height="0" />
+
   <div class="wrapper">
     <button style="display: none" class="title-program-up hidden-e hidden-&"></button>
     <button style="display: none" class="title-program-down hidden-d hidden-("></button>
@@ -56,7 +63,7 @@ if (typeof lang === "string") {
         <a href="javascript:void(0)" class="return-top"></a>
         <a href="javascript:void(0)" class="favorite"></a>
         <p>
-        <span></span>
+          <span></span>
         </p>
       </div>
 
@@ -79,6 +86,9 @@ if (typeof lang === "string") {
       </div>
     </div>
 
+    <div class="menu-modal popup" style="display: none">
+    </div>
+
     <div class="miiverse-modal" style="display: none">
     </div>
 
@@ -86,6 +96,9 @@ if (typeof lang === "string") {
     </div>
 
     <div class="miiverse-post-modal popup" style="display: none">
+    </div>
+
+    <div class="miiverse-user-details popup" style="display: none">
     </div>
 
     <div class="miiverse-doodle-modal popup" style="display: none">
@@ -102,12 +115,10 @@ if (typeof lang === "string") {
           <a href="javascript:void(0)" class="miiverse-button">
           </a>
         </div>
-        <span class="miiverse-text">
-          Posts are crossposted to your linked social
-          media. Yeahs are not crossposted.
+        <span class="miiverse-text" data-loc="vino.home.olv.crosspost.message">
         </span>
         <a href="javascript:void(0)" class="miiverse-post disabled">
-          <span>Post</span>
+          <span data-loc="vino.post"></span>
         </a>
         <div class="guide-button">
           <div class="guide-navi">
@@ -126,17 +137,50 @@ if (typeof lang === "string") {
     </div>
   </div>
 
+    <script type="text/template" class="miiverse-user-details-template" style="display: none">
+      <div class="dialog-container mv-user-detail-container">
+
+        <img class="mii" src="/img/mii-hidden.png">
+
+        <p class="display-name">-----</p>
+        <p class="nnid">-----</p>
+
+        <p class="post-count">-----</p>
+
+        <a href="javascript:void(0)" data-loc="vino.home.olv.modal.jump_miiverse_post" navi_target class="miiverse-jump disabled">
+        </a>
+        
+        <div class="dialog-buttons">
+          <a href="javascript:void(0)" navi_target="" class="btn-1 accesskey-b" data-loc="vino.cancel-withb"></a>
+          <a href="javascript:void(0)" navi_target="" class="btn-2 friend-status">
+            <span class="add" style="display: none;" data-loc="vino.home.olv.modal.add_friend"></span>
+            <span class="already" style="display: none;" data-loc="vino.home.olv.modal.is_friends"></span>
+            <span class="myself" style="display: none;" data-loc="vino.home.olv.modal.is_myself"></span>
+          </a>
+        </div>
+
+      </div>
+    </script>
+
+    <script type="text/template" class="menu-screen-template" style="display: none">
+      <div class="menu-container">
+        
+      </div>
+    </script>
+
 
   <script type="text/template" class="program-fulldetails-page-template" style="display: none">
-    <a href="javascript:void(0)" class="accesskey-l prev-page" style="display: none"></a>
+      <a href="javascript:void(0)" class="accesskey-l prev-page" style="display: none"></a>
       <a href="javascript:void(0)" class="accesskey-r next-page"></a>
       <div class="content">
 
-        <div class="program-slide program-airing-details">
+        <div class="program-slide program-image-detail">
           <div class="program-image">
             <img src="/img/noimg.png" />
           </div>
+        </div>
 
+        <div class="program-slide program-airing-details">
           <div class="program-details">
 
             <div class="program-airing">
@@ -147,7 +191,7 @@ if (typeof lang === "string") {
                 <span class="chnumber"></span>
                 <span class="prinfo">
                   <span class="tag" style="display: none"></span>
-                  <span class="info"></span>
+                  <span class="info-other"></span>
                 </span>
                 <span class="scoreinfo">
                   <span class="text"></span>
@@ -160,44 +204,49 @@ if (typeof lang === "string") {
               <p class="no-episode"></p>
             </div>
           </div>
-
         </div>
 
-        <div class="program-slide program-extended-meta">
+        <div class="program-slide program-detail-desc">
           <div class="parent-description">
-            <span>Details</span>
+            <span data-loc="vino.home.program.details_label"></span>
             <p></p>
           </div>
+        </div>
 
+        <div class="program-slide program-actors">
           <div class="actor-container">
-            <a navi_target href="javascript:void(0)" class="actor-link">View All Cast</a>
+            <span class="actor-link" data-loc="vino.home.program.cast"></span>
           </div>
         </div>
 
-        <div class="program-slide program-extra">
+        <div class="program-slide program-metadata">
           <div class="info">
             <span class="genre">
-              <span class="label">Genre:</span>
+              <span class="label" data-loc="vino.home.program.genre"></span>
               <span class="text"></span>
             </span>
             <span class="og-duration">
-              <span class="label">Airing Duration:</span>
+              <span class="label" data-loc="vino.home.program.airing_duration"></span>
               <span class="text"></span>
             </span>
           </div>
+        </div>
+
+        <div class="program-slide program-buttons">
           <div class="related-buttons">
-            <a navi_target href="javascript:void(0)" class="view-show  disabled">
-              <span>View More Details</span>
+            <a navi_target href="javascript:void(0)" class="view-all-airings disabled">
+              <span data-loc="vino.home.program.button.view_future_airing"></span>
             </a>
             <span class="sep"></span>
             <a navi_target href="javascript:void(0)" class="reminder disabled">
-              <span>Set Program Reminder</span>
+              <span data-loc="vino.home.program.button.set_reminder"></span>
             </a>
             <a navi_target href="javascript:void(0)" class="recommend  disabled">
-              <span>Recommend to Friend</span>
+              <span data-loc="vino.home.program.button.send_friend_rec"></span>
             </a>
           </div>
         </div>
+
       </div>
     </script>
 
@@ -245,7 +294,7 @@ if (typeof lang === "string") {
           </ul>
 
           <label navi_target navi_no_reset class="spoiler-button">
-            Mark as Spoiler
+           <span data-loc="vino.home.olv.crosspost.post.spoilers"></span>
             <input type="checkbox" name="is_spoiler" value="1" />
           </label>
 
@@ -265,9 +314,9 @@ if (typeof lang === "string") {
             </menu>
 
             <div class="textarea-text">
-              <textarea navi_target navi_no_reset wrap="soft" autocomplete="off" type="text" name="body" class="textarea-text-input" value="" maxlength="200" placeholder="Write something here..."></textarea>
+              <textarea navi_target navi_no_reset wrap="soft" autocomplete="off" type="text" name="body" class="textarea-text-input" value="" maxlength="200" data-loc-attr='{"placeholder":"vino.home.olv.crosspost.post.text_placeholder"}'></textarea>
 
-              <div class="textarea-text-preview placeholder" data-placeholder="Write something here...">
+              <div class="textarea-text-preview placeholder" data-loc-attr='{"data-placeholder":"vino.home.olv.crosspost.post.text_placeholder"}'>
               </div>
             </div>
 
@@ -278,8 +327,8 @@ if (typeof lang === "string") {
           </div>
         </div>
         <div class="dialog-buttons">
-          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b"> Cancel</a>
-          <a href="javascript:void(0)" navi_target class="btn-2">Post</a>
+          <a href="javascript:void(0)" navi_target class="btn-1 accesskey-b" data-loc="vino.cancel-withb"></a>
+          <a href="javascript:void(0)" navi_target class="btn-2"  data-loc="vino.post"></a>
         </div>
       </div>
     </script>
@@ -385,16 +434,17 @@ if (typeof lang === "string") {
 
       <div class="size-container">
         <a href="javascript:void(0)" class="minus accesskey-m"></a>
-        <p>Size:</p><span>6</span>
+        <p data-loc="vino.home.olv.crosspost.post.doodle_pen_size"></p><span>6</span>
         <a href="javascript:void(0)" class="plus accesskey-p"></a>
       </div>
 
       <div class="comment">
-        <textarea wrap="soft" autocomplete="off" type="text" name="body" value="" maxlength="200" placeholder="Write a comment for your doodle..."></textarea>
+        <textarea wrap="soft" autocomplete="off" type="text" name="body" value="" maxlength="200"
+        data-loc-attr='{"placeholder":"vino.home.olv.crosspost.post.placeholder_doodle"}'></textarea>
       </div>
 
       <a href="javascript:void(0)" class="finish-doodle-modal">
-        <span>Post</span>
+        <span data-loc="vino.post"></span>
       </a>
       <a href="javascript:void(0)" class="back-modal accesskey-b"></a>
     </script>
@@ -407,27 +457,15 @@ if (typeof lang === "string") {
       </div>
       <div class="content">
         <div class="tips">
-          <span>----------
+          <span>---------
             <p data-loc="vino.home.tips.title"></p>
-            ----------
+            ---------
           </span>
           <span></span>
           <span>------------------------</span>
         </div>
 
         <div class="contents">
-                              <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
                     <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
@@ -440,7 +478,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -452,7 +490,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -464,7 +502,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -476,7 +514,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -488,7 +526,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -500,7 +538,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -512,7 +550,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -524,7 +562,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -536,7 +574,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -548,7 +586,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -560,7 +598,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -572,7 +610,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -584,7 +622,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -596,7 +634,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -608,7 +646,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -620,7 +658,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -632,7 +670,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -644,7 +682,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -656,7 +694,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -668,7 +706,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -680,7 +718,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -692,7 +730,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -704,7 +742,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -716,7 +754,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -728,7 +766,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -740,7 +778,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -752,7 +790,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -764,7 +802,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -776,7 +814,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -788,7 +826,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -800,7 +838,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -812,7 +850,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -824,7 +862,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -836,7 +874,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -848,7 +886,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -860,7 +898,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -872,7 +910,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -884,7 +922,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -896,115 +934,7 @@ if (typeof lang === "string") {
               <span class="text"></span>
             </span>
           </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
-            <div class="genre"><span></span></div>
-            <span class="station">
-              <span class="num"></span>
-              <span class="nam"></span>
-            </span>
-            <span class="title"></span>
-            <span class="info">
-              <span class="tag" style="display:none"></span>
-              <span class="text"></span>
-            </span>
-          </a>
-                    <a href="javascript:void(0)" class="program">
+          <a href="javascript:void(0)" class="program">
             <div class="genre"><span></span></div>
             <span class="station">
               <span class="num"></span>
@@ -1028,8 +958,14 @@ if (typeof lang === "string") {
     </div>
 
     <div class="program-info">
-      <div class="program-image" style="display: none"></div>
       <div class="program-details" style="display: none">
+
+        <div class="program-airing-image" style="display: none">
+          <div class="img"></div>
+        </div>
+
+        <div class="program-airing-details" style="display: none">
+
         <div class="program-airing">
           <span class="date"></span>
           <div class="channel-detail">
@@ -1039,9 +975,13 @@ if (typeof lang === "string") {
             <span class="chnum"></span>
           </div>
         </div>
+
         <div class="program-description">
           <p></p>
         </div>
+
+        </div>
+
       </div>
     </div>
 

@@ -22,6 +22,12 @@ export const env = createEnv({
         VINO_JP_MINIO_ACCESS_KEY: z.string(),
         VINO_JP_MINIO_SECRET_KEY: z.string(),
         VINO_JP_MINIO_BUCKET: z.string(),
+
+        VINO_JP_TV_CDN_URL: z.string(),
+        VINO_JP_TV_LISTINGS_URL: z.string(),
+        VINO_JP_TV_LINEUPS_URL: z.string(),
+        VINO_JP_TV_LINEUPS_SET_BASE_URL: z.string(),
+        VINO_JP_TV_SEASON_CAST_URL: z.string(),
     },
     runtimeEnv: process.env,
     emptyStringAsUndefined: true,

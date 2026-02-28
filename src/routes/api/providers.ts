@@ -43,7 +43,7 @@ async function getListingsCookie({
         }
     }
 
-    const url = `https://www.tvpassport.com/lineups/set/${provider_id}?tz=${encodeURIComponent(tz_name)}`;
+    const url = `${env.VINO_JP_TV_LINEUPS_SET_BASE_URL}/${provider_id}?tz=${encodeURIComponent(tz_name)}`;
 
     // Note: ensure fetchWithProxy is imported/available
     const resp = await fetchWithProxy(url, undefined, false);
@@ -102,7 +102,7 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
         args.append("postalCode", String(zipcode).trim());
 
         const searchRespRaw = await postWithProxy(
-            "https://www.tvpassport.com/index.php/lineups",
+            env.VINO_JP_TV_LINEUPS_URL,
             args
         );
 
@@ -204,13 +204,19 @@ async function getChannelListByProviderID(
 ) {
     const key = `provider:${country}:${provider_id}:chlist`;
 
-    // 1️⃣ Try Redis first
+    function filterBrokenChannels(list: Channel[]) {
+        //ATM, Sorpresa returns a Too Many Redirects error
+        return list.filter(ch => ch.url !== "sorpresa/2107");
+    }
+
     const cached = await redis.get(key);
     if (cached) {
         try {
-            return JSON.parse(cached);
+            const parsed = JSON.parse(cached);
+            const cleaned = filterBrokenChannels(parsed);
+            return cleaned;
         } catch {
-            // corrupted cache, fall through
+            // corrupted cache
             await redis.del(key);
         }
     }
@@ -224,7 +230,7 @@ async function getChannelListByProviderID(
         });
 
         const searchRespRaw = await fetchWithProxy(
-            "https://www.tvpassport.com/tv-listings",
+            env.VINO_JP_TV_LISTINGS_URL,
             { Cookie: guidecookie }
         );
 
@@ -255,8 +261,8 @@ async function getChannelListByProviderID(
             if (logo) {
                 if (logo.endsWith("tv-grid-icon.png")) {
                     logo = null;
-                } else if (logo.startsWith("//cdn.tvpassport.com")) {
-                    logo = logo.replace("//cdn.tvpassport.com", "");
+                } else if (logo.startsWith("//" + env.VINO_JP_TV_CDN_URL)) {
+                    logo = logo.replace("//" + env.VINO_JP_TV_CDN_URL, "");
                 }
             }
 
@@ -280,7 +286,8 @@ async function getChannelListByProviderID(
             });
         });
 
-        // 2️⃣ Store in Redis (7 days)
+        //Store the real response always
+        //The filtering is dynamic, as we might not need it in the future.
         await redis.set(
             key,
             JSON.stringify(channels),
@@ -288,7 +295,8 @@ async function getChannelListByProviderID(
             60 * 60 * 24 * 7
         );
 
-        return channels;
+        return filterBrokenChannels(channels);
+
     } catch (err) {
         console.error(`Error in ${key}:`, err);
         return null;
@@ -395,7 +403,7 @@ async function getChannelScheduleByPath(
         });
 
         const searchRespRaw = await fetchWithProxy(
-            `https://www.tvpassport.com/tv-listings/stations/${channel_path_id}/${date}`,
+            `${env.VINO_JP_TV_LISTINGS_URL}/stations/${channel_path_id}/${date}`,
             { Cookie: guidecookie }
         );
 
@@ -608,7 +616,7 @@ async function getShowDetails
                 args.append("seriesID", seriesId);
 
                 const castRespRaw = await postWithProxy(
-                    "https://www.tvpassport.com/series/getLatestSeasonCast",
+                    env.VINO_JP_TV_SEASON_CAST_URL,
                     args
                 );
 
@@ -885,10 +893,15 @@ router.get("/info", async (req: Request, res: Response) => {
 
         let extra_program = null;
 
+
         if (program.url) {
-            extra_program = await getShowDetails(program.url, String(country),
-                String(provider_id),
-                String(tz_name))
+            try {
+                extra_program = await getShowDetails(program.url, String(country),
+                    String(provider_id),
+                    String(tz_name))
+            } catch (e) {
+
+            }
         }
 
         return res.status(200).json({
