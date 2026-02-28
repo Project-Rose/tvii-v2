@@ -1,0 +1,58 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+    </head>
+    <body style="background-color: #ffffcc">
+        <script type="text/javascript">
+            <!--
+            var clickNum = 0;
+            function touch_image(element) {
+                var rect = element.getBoundingClientRect();
+                console.log("left:" + rect.left);
+                console.log("right:" + rect.right);
+                console.log("top:" + rect.top);
+                console.log("bottom:" + rect.bottom);
+                vino.navi_set(
+                    rect.left,
+                    rect.top,
+                    rect.right - rect.left,
+                    rect.bottom - rect.top
+                );
+            }
+            // -->
+        </script>
+
+        <p>
+            ラジオボタン<br />
+            <input navi_target type="radio" name="q1" value="はい" /> はい
+            <input navi_target type="radio" name="q1" value="いいえ" /> いいえ
+            <input navi_target type="radio" name="q1" value="どちらでもない" />
+            どちらでもない
+        </p>
+
+        <p>
+            チェックボックス<br />
+            <input navi_target type="checkbox" name="q1" value="その1" /> その1
+            <input navi_target type="checkbox" name="q1" value="その2" /> その2
+            <input navi_target type="checkbox" name="q1" value="その3" /> その3
+            <input navi_target type="checkbox" name="q1" value="その4" /> その4
+            <input navi_target type="checkbox" name="q1" value="その5" /> その5
+        </p>
+
+        <p>
+            入力：<input navi_target type="text" name="text" size="30" /><br />
+        </p>
+
+        <img
+            navi_target
+            onclick="touch_image(this)"
+            src="base64img/base64_0.png"
+        />
+        <img
+            onclick="touch_image(this)"
+            navi_target
+            src="base64img/base64_1.png"
+        />
+    </body>
+</html>

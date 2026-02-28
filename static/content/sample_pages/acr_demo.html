@@ -1,0 +1,86 @@
+﻿<!doctype html>
+<html>
+    <head>
+        <title>ACR Sample</title>
+    </head>
+    <body>
+        <h2>ACR Sample</h2>
+        <form name="acr_setting">
+            <input
+                type="text"
+                name="acr_hostname"
+                value="acr.projectrose.cafe"
+                maxlength="64"
+            /><br />
+            <input
+                type="number"
+                name="acr_port"
+                value="8443"
+                size="4"
+                maxlength="4"
+            /><br />
+        </form>
+        <button
+            onclick="if(!vino.acr_setHostName(document.acr_setting.acr_hostname.value))alert('invalid')"
+        >
+            Set Dummy Server</button
+        ><br />
+        <button onclick="vino.acr_setPort(document.acr_setting.acr_port.value)">
+            Set Dummy Port</button
+        ><br />
+        <h2>Server Information</h2>
+        <div id="serverInformation"></div>
+        <hr />
+        <button onclick="vino.acr_startMatching(0.75,3500,4,50,3500*4)">
+            Start Matching (3500msec x 4 ,conf = 50, gain = 0.75)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(0.75,1800,6,60,1800*6)">
+            Start Matching (1800msec x 6 ,conf = 60, gain = 0.75)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(0.5,2500,5,70,2500*5)">
+            Start Matching (2500msec x 5 ,conf = 70, gain = 0.5)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(1.0,2500,5,80,2500*5)">
+            Start Matching (2500msec x 5 ,conf = 80, gain = 1.0)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(1.0,5000,2,50,5000*2)">
+            Start Matching (5000msec x 2 ,conf = 50, gain = 1.0)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(1.0,3500,4,50,3500*4)">
+            Start Matching (3500msec x 4 ,conf = 50, gain = 1.0)</button
+        ><br />
+        <button onclick="vino.acr_startMatching(1.0,3500,4,10,3500*4)">
+            Start Matching (3500msec x 4 ,conf = 10, gain = 1.0)</button
+        ><br />
+        <button onclick="window.location.reload()">reload</button>
+        <button onclick="vino.acr_stopMatching()">Stop Matching</button><br />
+        <br />
+        <hr />
+        <h2>Remained Time</h2>
+        <div id="remainedTime"></div>
+        <br />
+        <h2>Result</h2>
+        <div id="result"></div>
+    </body>
+    <script type="text/javascript">
+        vino.acr_setHostName("acr.projectrose.cafe");
+        function updateInformation() {
+            document.getElementById("remainedTime").innerHTML =
+                "<br>RemainedTime:" + vino.acr_getRemainedTime() + " msec";
+            document.getElementById("serverInformation").innerHTML =
+                "<br>HostName:" +
+                vino.acr_getHostName() +
+                "<br>Port:" +
+                vino.acr_getPort();
+        }
+        function updateResult() {
+            document.getElementById("result").innerHTML =
+                "<br>LastResult:" +
+                vino.acr_getLastResult() +
+                document.getElementById("result").innerHTML;
+        }
+
+        setInterval("updateResult()", 2000);
+        setInterval("updateInformation()", 100);
+    </script>
+</html>

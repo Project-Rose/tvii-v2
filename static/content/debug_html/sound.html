@@ -1,0 +1,337 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+
+        <script>
+            <!--
+            var soundRes = 0;
+
+            function init() {
+                var soundId = document.getElementById("soundId");
+                for (var i = 0; i < 50; i++) {
+                    soundId.innerHTML +=
+                        '<option value="' + i + '">' + i + "</option>";
+                }
+
+                var speed = document.getElementById("speed");
+                for (var i = -20; i < 150; i += 3) {
+                    speed.innerHTML +=
+                        '<option value="' + i + '">' + i + "</option>";
+                }
+                speed.selectedIndex = 7;
+            }
+
+            function soundPlayByList() {
+                var str = document
+                    .getElementById("touch_base")
+                    .value.replace(
+                        "XXXX",
+                        document.getElementById("touch_label").value
+                    );
+
+                if (document.getElementById("valid_speed").selectedIndex == 0)
+                    vino.soundPlayEx(
+                        str,
+                        Number(document.getElementById("speed").value)
+                    );
+                else vino.soundPlay(str);
+            }
+
+            function soundPlayByStr(str) {
+                if (document.getElementById("valid_speed").selectedIndex == 0)
+                    vino.soundPlayEx(
+                        str,
+                        Number(document.getElementById("speed").value)
+                    );
+                else vino.soundPlay(str);
+            }
+
+            function soundPlayById() {
+                soundRes = vino.soundPlayId(
+                    document.getElementById("soundId").selectedIndex
+                );
+            }
+
+            function soundStop() {
+                vino.soundStop(soundRes);
+            }
+            // -->
+        </script>
+    </head>
+    <body style="background-color: #ffffcc" onload="init()">
+        <h2>Sound Play By String</h2>
+
+        <select id="valid_speed">
+            <option value="valid_speed">Valid Speed</option>
+            <option value="invalid_speed">Invalid Speed</option>
+        </select>
+        <select id="speed"></select>
+        <br /><br />
+        <!--<select id="touch_base">
+<option value="SE_XXXX">SE_XXXX</option>
+<option value="SE_XXXX_TOUCH_OFF">SE_XXXX_TOUCH_OFF</option>
+</select>
+
+<select id="touch_label">
+<option value="DECIDE">DECIDE</option>
+<option value="DECIDE_SMALL">DECIDE_SMALL</option>
+<option value="CHANNEL">CHANNEL</option>
+<option value="CHANNEL_TEST">CHANNEL_TEST</option>
+<option value="CHECK">CHECK</option>
+<option value="CANCEL">CANCEL</option>
+<option value="CLOSE">CLOSE</option>
+<option value="RETURN">RETURN</option>
+<option value="FAVORITE">FAVORITE</option>
+<option value="NO_FAVORITE">NO_FAVORITE</option>
+<option value="DELETE_SMALL">DELETE_SMALL</option>
+<option value="POPUP">POPUP</option>
+<option value="FACE_BTN">FACE_BTN</option>
+<option value="POST_BTN">POST_BTN</option>
+<option value="FACE">FACE</option>
+<option value="POST">POST</option>
+</select>
+
+<input type="button" onClick="soundPlayByList()" value="Sound Start">-->
+        <input
+            type="button"
+            value="SE_DECIDE"
+            onclick="soundPlayByStr('SE_DECIDE')"
+        />
+        <input
+            type="button"
+            value="SE_DECIDE_SMALL"
+            onclick="soundPlayByStr('SE_DECIDE_SMALL')"
+        />
+        <input
+            type="button"
+            value="SE_CHANNEL"
+            onclick="soundPlayByStr('SE_CHANNEL')"
+        />
+        <input
+            type="button"
+            value="SE_CHANNEL_TEST"
+            onclick="soundPlayByStr('SE_CHANNEL_TEST')"
+        />
+        <input
+            type="button"
+            value="SE_CHECK"
+            onclick="soundPlayByStr('SE_CHECK')"
+        />
+        <input
+            type="button"
+            value="SE_CANCEL"
+            onclick="soundPlayByStr('SE_CANCEL')"
+        />
+        <input
+            type="button"
+            value="SE_CLOSE"
+            onclick="soundPlayByStr('SE_CLOSE')"
+        />
+        <input
+            type="button"
+            value="SE_RETURN"
+            onclick="soundPlayByStr('SE_RETURN')"
+        />
+        <input
+            type="button"
+            value="SE_FAVORITE"
+            onclick="soundPlayByStr('SE_FAVORITE')"
+        />
+        <input
+            type="button"
+            value="SE_NO_FAVORITE"
+            onclick="soundPlayByStr('SE_NO_FAVORITE')"
+        />
+        <input
+            type="button"
+            value="SE_DELETE_SMALL"
+            onclick="soundPlayByStr('SE_DELETE_SMALL')"
+        />
+        <input
+            type="button"
+            value="SE_POPUP"
+            onclick="soundPlayByStr('SE_POPUP')"
+        />
+        <input
+            type="button"
+            value="SE_FACE_BTN"
+            onclick="soundPlayByStr('SE_FACE_BTN')"
+        />
+        <input
+            type="button"
+            value="SE_POST_BTN"
+            onclick="soundPlayByStr('SE_POST_BTN')"
+        />
+        <input
+            type="button"
+            value="SE_FACE"
+            onclick="soundPlayByStr('SE_FACE')"
+        />
+        <input
+            type="button"
+            value="SE_POST"
+            onclick="soundPlayByStr('SE_POST')"
+        />
+        <br /><br />
+        <input
+            type="button"
+            value="SE_DECIDE_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_DECIDE_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_DECIDE_SMALL_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_DECIDE_SMALL_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_CHANNEL_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_CHANNEL_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_CHANNEL_TEST_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_CHANNEL_TEST_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_CHECK_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_CHECK_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_CANCEL_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_CANCEL_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_CLOSE_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_CLOSE_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_RETURN_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_RETURN_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_FAVORITE_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_FAVORITE_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_NO_FAVORITE_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_NO_FAVORITE_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_DELETE_SMALL_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_DELETE_SMALL_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_POPUP_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_POPUP_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_FACE_BTN_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_FACE_BTN_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_POST_BTN_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_POST_BTN_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_FACE_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_FACE_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_POST_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_POST_TOUCH_OFF')"
+        />
+        <br /><br />
+        <input
+            type="button"
+            value="SE_COMMON_TOUCH_ON"
+            onclick="soundPlayByStr('SE_COMMON_TOUCH_ON')"
+        />
+        <input
+            type="button"
+            value="SE_COMMON_TOUCH_CANCEL"
+            onclick="soundPlayByStr('SE_COMMON_TOUCH_CANCEL')"
+        />
+        <input
+            type="button"
+            value="SE_TAB_SELECT"
+            onclick="soundPlayByStr('SE_TAB_SELECT')"
+        />
+        <input
+            type="button"
+            value="SE_APPEAR_DETAIL"
+            onclick="soundPlayByStr('SE_APPEAR_DETAIL')"
+        />
+        <br /><br />
+        <input
+            type="button"
+            value="SE_COMMON_MOVE_CURSOR"
+            onclick="soundPlayByStr('SE_COMMON_MOVE_CURSOR')"
+        />
+        <input
+            type="button"
+            value="SE_SLIDE_SPEED"
+            onclick="soundPlayByStr('SE_SLIDE_SPEED')"
+        />
+        <input
+            type="button"
+            value="SE_SLIDEEND_HIT"
+            onclick="soundPlayByStr('SE_SLIDEEND_HIT')"
+        />
+        <input
+            type="button"
+            value="SE_DECIDE2_TOUCH_OFF"
+            onclick="soundPlayByStr('SE_DECIDE2_TOUCH_OFF')"
+        />
+        <input
+            type="button"
+            value="SE_COMMON_SELECT"
+            onclick="soundPlayByStr('SE_COMMON_SELECT')"
+        />
+        <input
+            type="button"
+            value="SE_DECIDE2"
+            onclick="soundPlayByStr('SE_DECIDE2')"
+        />
+        <input
+            type="button"
+            value="SE_SLIDE_SPEED"
+            onclick="soundPlayByStr('SE_SLIDE_SPEED')"
+        />
+        <input
+            type="button"
+            value="SE_SLIDEEND_HIT"
+            onclick="soundPlayByStr('SE_SLIDEEND_HIT')"
+        />
+        <input
+            type="button"
+            value="SE_COMMON_TEXTBOX"
+            onclick="soundPlayByStr('SE_COMMON_TEXTBOX')"
+        />
+        <br />
+
+        <hr />
+        <h2>Sound Play By ID</h2>
+        <select id="soundId"></select>
+        <input type="button" onClick="soundPlayById()" value="スタート" />
+        <input type="button" onClick="soundStop()" value="ストップ" />
+        <p>
+            ※スタート→番号を変える→スタート→ストップ　の手順で実行した際に、最初のサウンドが停止しないのは仕様です
+        </p>
+
+        <br />
+    </body>
+</html>

@@ -1,0 +1,123 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+
+        <script>
+            <!--
+            var soundRes = 0;
+
+            function ngCheck(isWord) {
+                var str = document.getElementById("ng_text").value;
+                var result;
+
+                if (isWord) result = vino.ng_checkWord(str);
+                else result = vino.ng_checkText(str);
+
+                document.getElementById("ng_result").innerHTML =
+                    "NG_Result: " + (result ? "SAFE" : "NG");
+            }
+            // -->
+        </script>
+    </head>
+    <body style="background-color: #ffffcc">
+        <h2>NG</h2>
+
+        <input type="text" id="ng_text" size="80" />
+        <input type="button" onClick="ngCheck(true)" value="ng_checkWord" />
+        <input type="button" onClick="ngCheck(false)" value="ng_checkText" />
+        <div id="ng_result">NG_Result: NONE</div>
+
+        <br />
+        <br />
+        <h2>Application Jump</h2>
+
+        <h3>InternetBrowser</h3>
+
+        <button onclick="vino.jumpToBrowser('http://www.nintendo.co.jp',true)">
+            Internet Browser(with Dialog)
+        </button>
+        <button onclick="vino.jumpToBrowser('http://www.nintendo.co.jp',false)">
+            Internet Browser(no Dialog)
+        </button>
+
+        <h3>Miiverse</h3>
+
+        <button onclick="vino.jumpToMiiverse(true)">
+            Miiverse(with Dialog)
+        </button>
+        <button onclick="vino.jumpToMiiverse(false)">
+            Miiverse(no Dialog)
+        </button>
+
+        <h3>VOD</h3>
+
+        <button
+            onclick="vino.jumpToVod('000500001fd00000','http://www.nintendo.com',true)"
+        >
+            Bamboo (with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToVod('000500001fd00000','http://www.nintendo.com',false)"
+        >
+            Bamboo (no Dialog)
+        </button>
+
+        <button
+            onclick="vino.jumpToVod('0005000010105a00','http://www.nintendo.com',true)"
+        >
+            Netflix (with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToVod('0005000010105a00','http://www.nintendo.com',false)"
+        >
+            Netflix (no Dialog)
+        </button>
+
+        <button
+            onclick="vino.jumpToVod('0005000010102d00','http://www.nintendo.com',true)"
+        >
+            Hulu (with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToVod('0005000010102d00','http://www.nintendo.com',false)"
+        >
+            Hulu (no Dialog)
+        </button>
+
+        <h3>SettingsTvRemote</h3>
+
+        <button onclick="vino.jumpToSettingsTvRemote(true)">
+            SettingsTvRemote(with Dialog)
+        </button>
+        <button onclick="vino.jumpToSettingsTvRemote(false)">
+            SettingsTvRemote(no Dialog)
+        </button>
+
+        <h3>EShop</h3>
+
+        <button
+            onclick="vino.jumpToEShop('version=1.0.0&scene=top&src_title_id=000500301001310A',true)"
+        >
+            eShop TopPage(with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToEShop('version=1.0.0&scene=top&src_title_id=000500301001310A',false)"
+        >
+            eShopTopPage(no Dialog)
+        </button>
+
+        <br />
+        <button
+            onclick="vino.jumpToEShop('version=1.0.0&scene=detail&dst_unique_id=FAD01&src_title_id=000500301001310A',true)"
+        >
+            eShop Detail Page(with Dialog)
+        </button>
+        <button
+            onclick="vino.jumpToEShop('version=1.0.0&scene=detail&dst_unique_id=FAD01&src_title_id=000500301001310A',false)"
+        >
+            eShop Detail Page(no Dialog)
+        </button>
+        <br />
+    </body>
+</html>

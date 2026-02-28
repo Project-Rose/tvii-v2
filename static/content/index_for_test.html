@@ -1,0 +1,158 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Index</title>
+
+        <script type="text/javascript">
+            <!--
+            function init() {
+                var hour = document.getElementById("hour");
+                for (var i = 0; i < 24; i++) {
+                    hour.innerHTML +=
+                        '<option value="' + i + '">' + i + "</option>";
+                }
+
+                var minute = document.getElementById("minute");
+                for (var i = 0; i < 60; i += 2) {
+                    minute.innerHTML +=
+                        '<option value="' + i + '">' + i + "</option>";
+                }
+            }
+
+            function startWithAssignedTime() {
+                var hour = document.getElementById("hour").selectedIndex;
+                var minute =
+                    document.getElementById("minute").selectedIndex * 2;
+                location.href =
+                    "https://web.d1.jp.vino.wup.app.nintendo.net/etc/time?h=" +
+                    hour +
+                    "&m=" +
+                    minute;
+            }
+
+            // -->
+        </script>
+    </head>
+    <body style="background-color: #ffffcc" onload="init()">
+        <h1>Vino Debug</h1>
+
+        <h2>Vino</h2>
+        <ul>
+            <li>
+                <a
+                    navi_target
+                    href="https://web.d1.jp.vino.wup.app.nintendo.net/etc/start"
+                    >Vino</a
+                >
+            </li>
+            <li>
+                <a
+                    navi_target
+                    href="https://web.d1.jp.vino.wup.app.nintendo.net/etc/reset"
+                    >Reset First Start Flag</a
+                >
+            </li>
+            <li>
+                <a
+                    navi_target
+                    href="https://web.d1.jp.vino.wup.app.nintendo.net/etc/resetsettings"
+                    >Reset Settings</a
+                >
+            </li>
+            <li>
+                <a
+                    navi_target
+                    href="https://web.d1.jp.vino.wup.app.nintendo.net/etc/resetfavs"
+                    >Reset Favorites</a
+                >
+            </li>
+            <li>
+                <a
+                    navi_target
+                    href="https://web.d1.jp.vino.wup.app.nintendo.net/etc/resetall"
+                    >Reset All (First Start Flag, Settings, Favorites)</a
+                >
+            </li>
+        </ul>
+
+        <table border="0">
+            <th width="20"></th>
+            <th>Hour:</th>
+            <th width="60">
+                <select id="hour"></select>
+            </th>
+            <th>Minute:</th>
+            <th width="60">
+                <select id="minute"></select>
+            </th>
+            <th>→</th>
+            <th>
+                <input
+                    type="button"
+                    id="time_set"
+                    value="Start Vino with Assigned Time"
+                    onClick="startWithAssignedTime()"
+                />
+            </th>
+        </table>
+
+        <hr />
+
+        <h2>Debug Page</h2>
+        <ul>
+            <li>
+                <a navi_target href="debug_html/video.html">Video Check</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/message.html">Message Check</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/olive.html">Miiverse Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/localstorage.html"
+                    >Localstorage Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/sound.html">Sound Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/account.html">Account Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/suggest.html">Suggest Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/apd_dim.html"
+                    >APD and Dim Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/ng_jump.html"
+                    >NGList and Jump Test</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/parental_control.html"
+                    >Parental Control</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="debug_html/memory_test/1.html"
+                    >Memory Check</a
+                >(offline)
+            </li>
+            <li>
+                <a navi_target href="navi_test.html">Navigation Test</a
+                >(offline)
+            </li>
+        </ul>
+    </body>
+</html>

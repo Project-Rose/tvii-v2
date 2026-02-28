@@ -1,0 +1,155 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+        <style></style>
+    </head>
+    <body style="background-color: #ffffcc">
+        <script type="text/javascript">
+            <!--
+
+            var suggest_string;
+
+            window.onload = function () {
+                setInterval(function () {
+                    if (vino.suggest_isOpening()) {
+                        var new_string = vino.suggest_getString();
+
+                        if (new_string != suggest_string && new_string != "") {
+                            suggest_string = new_string;
+                            // 必ず 10 個入力する。(10個未満の場合は null を指定)
+                            vino.suggest_set(
+                                "a",
+                                "b",
+                                "c",
+                                "d",
+                                "e",
+                                "f",
+                                "g",
+                                "h",
+                                "i",
+                                "j"
+                            );
+                        }
+                    } else {
+                        suggest_string = "";
+                    }
+                }, 100);
+            };
+
+            // -->
+        </script>
+
+        <div>Suggest:</div>
+        <input vino_suggest type="text" id="text_suggest" size="30" />
+        <br />
+        <br />
+
+        <hr />
+
+        <iframe
+            width="640"
+            height="360"
+            src="http://www.youtube.com/embed/45ru2TQkRL8?feature=player_detailpage"
+            frameborder="0"
+            allowfullscreen
+        ></iframe>
+        <video src="../dummy.mp4" autoplay controls></video>
+        <br />
+        <br />
+
+        <hr />
+        <div>
+            >>Attention<< <br />Please select Left button. (If you select Right,
+            vino will end.)
+        </div>
+        <input
+            type="button"
+            value="JumpToBrowserDialog"
+            onclick="vino.jumpToBrowser('',true)"
+        />
+        <input
+            type="button"
+            value="JumpToEShopDialog"
+            onclick="vino.jumpToEShop('1',true)"
+        />
+        <input
+            type="button"
+            value="JumpToMiiverseDialog"
+            onclick="vino.jumpToMiiverse(true)"
+        />
+        <input
+            type="button"
+            value="JumpToSettingsTVRemoteDialog"
+            onclick="vino.jumpToSettingsTvRemote(true)"
+        />
+        <input
+            type="button"
+            value="JumpToVodDialog"
+            onclick="vino.jumpToVod('','',true)"
+        />
+        <br />
+        <br />
+
+        <hr />
+        <div>No effect by any select</div>
+        <input
+            type="button"
+            value="JSErrorDialog"
+            onclick="vino.runDialogForDebug(0)"
+        />
+        <input
+            type="button"
+            value="YesNoDialog"
+            onclick="vino.runDialogForDebug(1)"
+        />
+        <input
+            type="button"
+            value="OKCancelDialog"
+            onclick="vino.runDialogForDebug(2)"
+        />
+        <input
+            type="button"
+            value="CriticalErrorDialog"
+            onclick="vino.runDialogForDebug(3)"
+        />
+        <input
+            type="button"
+            value="UnderConstructionErrorDialog"
+            onclick="vino.runDialogForDebug(4)"
+        />
+        <br />
+        <input
+            type="button"
+            value="SaveNowMessage(SpareMessage)"
+            onclick="vino.runDialogForDebug(5)"
+        />
+        <input
+            type="button"
+            value="NetworkErrorMessage(SpareMessage)"
+            onclick="vino.runDialogForDebug(6)"
+        />
+        <input
+            type="button"
+            value="UnderConstruction_00(SpareMessage)"
+            onclick="vino.runDialogForDebug(7)"
+        />
+        <input
+            type="button"
+            value="End Vino(SpareMessage)"
+            onclick="vino.runDialogForDebug(8)"
+        />
+        <br />
+        <br />
+
+        <hr />
+        <div>
+            >>Attention<< <br />RunErrorDialog force you to return top page.
+        </div>
+        <input
+            type="button"
+            value="RunErrorDialog"
+            onclick="vino.runErrorDialog(1234)"
+        />
+    </body>
+</html>

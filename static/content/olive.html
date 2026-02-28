@@ -1,0 +1,178 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Site20 Online</title>
+
+        <script>
+            <!--
+            window.onload = function () {
+                if (vino.olv_isEnabled()) {
+                    document.getElementById("send_button").disabled = false;
+                    document.getElementById("service_token").innerHTML =
+                        "<pre>" + vino.olv_getServiceToken() + "</pre>";
+                    document.getElementById("parameter_pack").innerHTML =
+                        "<pre>" + vino.olv_getParameterPack() + "</pre>";
+                    document.getElementById("host_name").innerHTML =
+                        "<pre>" + vino.olv_getHostName() + "</pre>";
+                    document.getElementById("user_agent").innerHTML =
+                        "<pre>" + vino.olv_getUserAgent() + "</pre>";
+                    document.getElementById("page_text").style.display =
+                        "block";
+                } else {
+                    document.getElementById("send_button").disabled = true;
+                }
+            };
+            // -->
+        </script>
+    </head>
+    <body style="background-color: #ffffcc">
+        <script type="text/javascript">
+            <!--
+
+            var g_memo_image_tga;
+
+            function open_memo(clear_flag) {
+                document.getElementById("page_text").style.display = "none";
+                document.getElementById("page_image").style.display = "block";
+
+                vino.memo_open(clear_flag);
+                setTimeout("check_memo()", 100);
+            }
+
+            function check_memo() {
+                if (!vino.memo_isFinish()) {
+                    setTimeout("check_memo()", 100);
+                } else {
+                    var is_png = true;
+                    var memo_image = vino.memo_getImage(is_png);
+                    if (memo_image != "") {
+                        var target = document.getElementById("memo");
+                        target.src = memo_image;
+                    }
+
+                    g_memo_image_tga = vino.memo_getImage(false);
+                }
+            }
+
+            function open_swkbd() {
+                document.getElementById("page_text").style.display = "block";
+                document.getElementById("page_image").style.display = "none";
+                document.getElementById("message").focus();
+                vino.wakeKeyboard();
+            }
+
+            function send_message() {
+                var feeling = document.getElementById("feeling").selectedIndex;
+                var spoiler = document.getElementById("spoiler").checked;
+                var tag = "NHK";
+                var key1 = "time_20120801_1430";
+                var key2 = null;
+                var key3 = null;
+                var key4 = null;
+                var key5 = null;
+
+                if (
+                    document.getElementById("page_text").style.display ==
+                    "block"
+                ) {
+                    // 文章を投稿
+                    var message = document.getElementById("message").value;
+
+                    console.log(message + ":" + feeling);
+
+                    vino.olv_postText(
+                        message,
+                        tag,
+                        feeling,
+                        spoiler,
+                        key1,
+                        key2,
+                        key3,
+                        key4,
+                        key5
+                    );
+                } else {
+                    // 画像を投稿
+                    vino.olv_postImage(
+                        g_memo_image_tga,
+                        tag,
+                        feeling,
+                        spoiler,
+                        key1,
+                        key2,
+                        key3,
+                        key4,
+                        key5
+                    );
+                }
+            }
+
+            // -->
+        </script>
+
+        <select id="feeling">
+            <option value="0" selected>Normal(指定なし)</option>
+            <option value="1">Happy(楽しい)</option>
+            <option value="2">Like(好き)</option>
+            <option value="3">Surprised(びっくり)</option>
+            <option value="4">Frustrated(くやしい)</option>
+            <option value="5">Puzzled(こまった)</option>
+        </select>
+        <br />
+
+        <div id="page_text" styele="height:120px; width:320px; display:block;">
+            <textarea
+                id="message"
+                rows="3"
+                cols="30"
+                maxlength="100"
+            ></textarea>
+        </div>
+        <div id="page_image" styele="height:120px; width:320px; display:none;">
+            <img id="memo" /><br />
+        </div>
+        <p>
+            <input navi_target id="spoiler" type="checkbox" />Spoiler
+            (ネタバレ)<br />
+        </p>
+        <input
+            navi_target
+            type="button"
+            value="Handwriting"
+            onclick="open_memo(false)"
+        />
+        <input
+            navi_target
+            type="button"
+            value="Handwriting(clear)"
+            onclick="open_memo(true)"
+        />
+        <input
+            navi_target
+            type="button"
+            value="TextInput"
+            onclick="open_swkbd()"
+        />
+        <br />
+        <br />
+
+        <input
+            navi_target
+            id="send_button"
+            type="button"
+            value="投稿"
+            onclick="send_message()"
+        />
+        <br />
+
+        <h3>olv Information</h3>
+        ServiceToken:
+        <p id="service_token"></p>
+        ParameterPack:
+        <p id="parameter_pack"></p>
+        UserAgent:
+        <p id="user_agent"></p>
+        HostName:
+        <p id="host_name"></p>
+    </body>
+</html>

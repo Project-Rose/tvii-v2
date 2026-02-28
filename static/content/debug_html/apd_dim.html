@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>Dim</title>
+
+        <script type="text/javascript">
+            <!--
+            function updateAPD() {
+                var str = "apd_isEnabled    :" + vino.apd_isEnabled() + "<br>";
+                str += "apd_isWiiuEnabled:" + vino.apd_isWiiuEnabled() + "<br>";
+                str += "apd_getPeriod    :" + vino.apd_getPeriod() + "<br>";
+                str += "apd_getLastTime  :" + vino.apd_getLastTime() + "<br>";
+
+                document.getElementById("APD").innerHTML = str;
+            }
+            //-->
+        </script>
+    </head>
+
+    <body
+        style="background-color: #ffffcc"
+        onload="setInterval('updateAPD()',100)"
+    >
+        <h2>APD</h2>
+        <p>
+            APDが有効ならば、1時間放置すると終了します（5分前にメッセージ表示有り）
+        </p>
+        <div id="APD"></div>
+        <br />
+        <button onclick="vino.apd_enable()">APD Enable</button>
+        <button onclick="vino.apd_disable()">APD Disable</button>
+
+        <h2>Dim</h2>
+        <p>
+            Dim（画面焼き付き防止機能）が有効ならば、5分間放置すると画面が暗くなります
+        </p>
+        <input
+            type="button"
+            value="Dim Enable"
+            onclick="vino.setDimEnable(true)"
+        />
+        <input
+            type="button"
+            value="Dim Disable"
+            onclick="vino.setDimEnable(false)"
+        />
+    </body>
+</html>

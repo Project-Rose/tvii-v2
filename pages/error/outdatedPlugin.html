@@ -1,0 +1,43 @@
+<script>
+    var lang = (vino.info_getLanguage() || "en").toLowerCase();
+    var version = "1.2.6"; // version string
+    var message = "";
+
+    switch (lang) {
+        case "es":
+        case "sp": // Spanish
+            message = "Actualiza el plugin de Aroma de\nRosé Patcher a la versión\n" + version + " o posterior.\n\nPara soporte, pregunta en nuestro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "fr": // French
+            message = "Veuillez mettre à jour le plugin\nAroma de Rosé Patcher vers\nla version " + version + " ou ultérieure.\n\nPour obtenir de l'aide, demandez sur notre Discord :\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "it": // Italian
+            message = "Aggiorna il plugin Aroma di\nRosé Patcher alla versione\n" + version + " o successiva.\n\nPer supporto, chiedi nel nostro Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "de": // German
+        case "ge":
+            message = "Bitte aktualisiere das Aroma-Plugin\nvon Rosé Patcher auf\nVersion " + version + " oder höher.\n\nFür Support, frage in unserem Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "nl": // Dutch
+            message = "Werk de Aroma-plugin van\nRosé Patcher bij naar versie\n" + version + " of hoger.\n\nVoor ondersteuning, vraag in onze Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "po":
+        case "pt": // Portuguese
+            message = "Atualize o plugin Aroma do\nRosé Patcher para a versão\n" + version + " ou superior.\n\nPara suporte, peça ajuda no nosso Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ru": // Russian
+            message = "Обновите плагин Aroma от\nRosé Patcher до версии " + version + " или новее.\n\nЗа поддержкой обращайтесь в наш Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        case "ja": // Japanese
+        case "jp":
+            message = "Rosé Patcher の Aroma\nプラグインをバージョン " + version + "\n以降に更新してください。\n\nサポートについては、Discord でお問い合わせください:\nhttps://discord.gg/AaTsXndGun";
+            break;
+        default: // English
+            message = "Please update the Rosé Patcher\nAroma plugin to v" + version + " or later.\n\nFor support, ask in our Discord:\nhttps://discord.gg/AaTsXndGun";
+            break;
+    }
+
+    vino.soundPlay("SE_BAR_ERROR_APPEAR");
+    alert(message);
+    vino.exitForce();
+</script>
