@@ -115,12 +115,15 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.spoilers": "C'est une révélation",
     "vino.home.olv.crosspost.post.doodlebut": 'Doodle',
 
-    "vino.home.olv.modal.jump_miiverse_post": "View user's latest post on Miiverse",
-    "vino.home.olv.modal.is_friends": "Friends",
-    "vino.home.olv.modal.is_myself": "Myself",
-    "vino.home.olv.modal.add_friend": "Add as Friend",
-    "vino.home.olv.modal.post_count": "%s posts",
-    "vino.home.olv.modal.ask_adding_friend": "Do you want to close Nintendo TVii\nand jump to the HOME Menu to\nadd this user as a friend?",
+    "vino.home.olv.modal.header_title_new": "<b>Nouveau</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">En direct</b> %s',
+
+    "vino.home.olv.modal.jump_miiverse_post": "Voir le dernier message de l'utilisateur sur Miiverse",
+    "vino.home.olv.modal.is_friends": "Amis",
+    "vino.home.olv.modal.is_myself": "Moi-même",
+    "vino.home.olv.modal.add_friend": "Ajouter comme ami",
+    "vino.home.olv.modal.post_count": "%s messages",
+    "vino.home.olv.modal.ask_adding_friend": "Voulez-vous fermer Nintendo TVii\nand sauter dans le menu HOME pour que cet utilisateur en tant qu'ami?",
 
     "vino.home.olv.crosspost.post.text_placeholder": 'Appuyez ici pour écrire un message...',
     "vino.home.olv.crosspost.post.placeholder_doodle": 'Appuyez ici pour joindre un message.',

@@ -102,20 +102,4 @@ router.post("/posts", async (req: Request, res: Response): Promise<any> => {
         });
     }
 });*/
-
-router.post(
-    "/:postid/empathies",
-    async (req: Request, res: Response): Promise<any> => {
-        try {
-            console.log(req);
-        } catch (error) {
-            console.error("Yeah! post error:", error);
-            res.status(500).json({
-                error: "Failed to fetch posts",
-                detail: (error as Error).message,
-            });
-        }
-    }
-);
-
 export { router as miiverse };

@@ -1946,7 +1946,9 @@ function initVinoHome() {
         } else {
             vino.soundPlayVolume("SE_COMMON_FINISH", 30);
         }
-        vino.exit();
+        setTimeout(function () {
+            vino.exit();
+        }, 0)
     });
 
     $(".footer .back").on("click", function (e) {
@@ -2062,7 +2064,8 @@ function initVinoHome() {
             initLiveTab();
         }
         return alert(tvii.getLoc("vino.home.not_available_feature"));
-
+        vino.lyt_startTouchEffect();
+        vino.soundPlayVolume("SE_TAB_SELECT", 30);
         $(".header .tabs>a").removeClass("selected");
         $(this).addClass("selected");
         switch ($(this).index()) {
@@ -2775,7 +2778,7 @@ function initVinoHome() {
                     programDetails.find(".program-airing-details").show();
                 } else {
                     programDetails
-                        .find(".program-airing-image > .img")
+                        .find(".program-airing-image .img")
                         .css("background-image", "url(/images/cdn/tvp" + img + ")");
                     programDetails.find(".program-airing-image").show();
                 }
@@ -3526,6 +3529,7 @@ function initVinoHome() {
                 );
 
                 // reset marquee
+                p2.removeAttr("data-has-marquee")
                 p2.removeClass("marquee");
 
                 // force layout
@@ -3536,6 +3540,7 @@ function initVinoHome() {
                 spanEl.offsetWidth;
                 // enable marquee if overflow
                 if (spanEl.scrollWidth > pEl.clientWidth) {
+                    p2.attr("data-has-marquee", "1")
                     p2.addClass("marquee");
                 }
 
@@ -3652,6 +3657,8 @@ function initVinoHome() {
 
         setTimeout(function () {
             head2.find("span").text("");
+            head2.find("p").removeAttr("data-has-marquee")
+            head2.find("p").removeClass("marquee");
             //emptied div
             det.empty();
             det.hide();
@@ -3700,18 +3707,22 @@ function initVinoHome() {
         var $prev = det.find(".prev-page");
         var $next = det.find(".next-page");
 
-        var segmentWidth = 427; // each scroll segment
-        var visibleWidth = 854; // container visible area
+        var segmentWidth = 427;
+        var visibleWidth = 854;
 
         var isDragging = false;
         var startX = 0;
         var scrollStart = 0;
 
+        var holdTimer = null;
+        var repeatTimer = null;
+        var holdStartTime = 0;
+        var isHolding = false;
+
         function getMaxScroll() {
             return Math.max($container[0].scrollWidth - visibleWidth, 0);
         }
 
-        // snap scroll to nearest segment
         function snapToSegment(scrollLeft) {
             var segment = Math.round(scrollLeft / segmentWidth);
             return segment * segmentWidth;
@@ -3721,24 +3732,14 @@ function initVinoHome() {
             var scrollLeft = $container.scrollLeft();
             var maxScroll = getMaxScroll();
 
-            // if content fits inside visible width → no scrolling needed
             if ($container[0].scrollWidth <= visibleWidth) {
                 $prev.hide();
                 $next.hide();
                 return;
             }
 
-            if (scrollLeft <= 0) {
-                $prev.hide();
-            } else {
-                $prev.show();
-            }
-
-            if (scrollLeft >= maxScroll - 1) {
-                $next.hide();
-            } else {
-                $next.show();
-            }
+            scrollLeft <= 0 ? $prev.hide() : $prev.show();
+            scrollLeft >= maxScroll - 1 ? $next.hide() : $next.show();
         }
 
         function stopDragging() {
@@ -3749,60 +3750,101 @@ function initVinoHome() {
         }
 
         // ========================
-        // PREV BUTTON
+        // SCROLL LOGIC (shared)
         // ========================
-        $prev.on("click", function (e) {
+        function scrollPage(direction, speed) {
             if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
 
             stopDragging();
             isPrgmPageMoveDisabled = true;
 
+            vino.soundPlayVolume("SE_MOVEPAGE_PLAY", 30); // play each time
+
+            var current = $container.scrollLeft();
+            var maxScroll = getMaxScroll();
+
+            var target =
+                direction === "next"
+                    ? Math.min(current + segmentWidth, maxScroll)
+                    : Math.max(current - segmentWidth, 0);
+
+            target = snapToSegment(target);
+
+            $container.stop(true).animate({ scrollLeft: target }, speed, function () {
+                updateButtons();
+                isPrgmPageMoveDisabled = false;
+
+                if (target === 0 || target === maxScroll) {
+                    stopHold(); // stop if reached edge
+                }
+            });
+        }
+
+        // ========================
+        // HOLD HANDLING
+        // ========================
+        function startHold(direction, e) {
+            if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
+
             if (e.originalEvent && !vino.navi_getRect()) {
                 vino.lyt_startTouchEffect();
             }
 
-            vino.soundPlayVolume("SE_MOVEPAGE_PLAY", 30);
+            isHolding = true;
+            holdStartTime = Date.now();
 
-            var current = $container.scrollLeft();
-            var target = Math.max(current - segmentWidth, 0);
+            // wait 1s before endless sliding
+            holdTimer = setTimeout(function () {
+                repeatTimer = setInterval(function () {
+                    var heldFor = Date.now() - holdStartTime;
 
-            target = snapToSegment(target);
+                    // after 2.5s holding → faster
+                    var speed = heldFor > 2500 ? 120 : 150;
 
-            $container.animate({ scrollLeft: target }, 200, function () {
-                updateButtons();
-                isPrgmPageMoveDisabled = false;
-            });
+                    scrollPage(direction, speed);
+                }, 140);
+            }, 1000);
+        }
+
+        function stopHold() {
+            clearTimeout(holdTimer);
+            clearInterval(repeatTimer);
+            holdTimer = null;
+            repeatTimer = null;
+            isHolding = false;
+        }
+
+        // ========================
+        // PREV BUTTON
+        // ========================
+        $prev.on("mousedown", function (e) {
+            startHold("prev", e);
+        });
+
+        $prev.on("click", function () {
+            if (isHolding) return;
+            scrollPage("prev", 200);
         });
 
         // ========================
         // NEXT BUTTON
         // ========================
-        $next.on("click", function (e) {
-            if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
-
-            stopDragging();
-            isPrgmPageMoveDisabled = true;
-
-            if (e.originalEvent && !vino.navi_getRect()) {
-                vino.lyt_startTouchEffect();
-            }
-
-            vino.soundPlayVolume("SE_MOVEPAGE_PLAY", 30);
-
-            var maxScroll = getMaxScroll();
-            var current = $container.scrollLeft();
-            var target = Math.min(current + segmentWidth, maxScroll);
-
-            target = snapToSegment(target);
-
-            $container.animate({ scrollLeft: target }, 200, function () {
-                updateButtons();
-                isPrgmPageMoveDisabled = false;
-            });
+        $next.on("mousedown", function (e) {
+            startHold("next", e);
         });
 
+        $next.on("click", function () {
+            if (isHolding) return;
+            scrollPage("next", 200);
+        });
+
+        // stop hold on release anywhere
+        $(document).on("mouseup", stopHold);
+        $prev.on("mouseleave", stopHold);
+        $next.on("mouseleave", stopHold);
+
         // ========================
-        // DRAG SCROLLING
+        // DRAG SCROLLING (unchanged)
         // ========================
         $container.on("mousedown", function (e) {
             if (isPrgmPageMoveDisabled) return;
@@ -3815,7 +3857,6 @@ function initVinoHome() {
 
             $(document).on("mousemove.programDrag", function (e) {
                 if (!isDragging) return;
-
                 var delta = startX - e.pageX;
                 $container.scrollLeft(scrollStart + delta);
             });
@@ -3825,26 +3866,16 @@ function initVinoHome() {
 
                 var scrollLeft = $container.scrollLeft();
                 var maxScroll = getMaxScroll();
-
-                // how far user dragged
                 var dragDistance = startX - e.pageX;
-
-                // how sensitive snapping is (lower = easier)
                 var snapThreshold = segmentWidth * 0.15;
-
                 var target;
 
                 if (Math.abs(dragDistance) > snapThreshold) {
-                    // move to next or prev segment
-                    if (dragDistance > 0) {
-                        // dragged left → next
-                        target = Math.ceil(scrollLeft / segmentWidth) * segmentWidth;
-                    } else {
-                        // dragged right → prev
-                        target = Math.floor(scrollLeft / segmentWidth) * segmentWidth;
-                    }
+                    target =
+                        dragDistance > 0
+                            ? Math.ceil(scrollLeft / segmentWidth) * segmentWidth
+                            : Math.floor(scrollLeft / segmentWidth) * segmentWidth;
                 } else {
-                    // not enough movement → snap back to nearest
                     target = snapToSegment(scrollLeft);
                 }
 
@@ -3853,25 +3884,17 @@ function initVinoHome() {
 
                 isPrgmPageMoveDisabled = true;
 
-                $container.animate(
-                    { scrollLeft: target },
-                    200,
-                    function () {
-                        isPrgmPageMoveDisabled = false;
-                        updateButtons();
-                    }
-                );
+                $container.animate({ scrollLeft: target }, 200, function () {
+                    isPrgmPageMoveDisabled = false;
+                    updateButtons();
+                });
 
                 stopDragging();
             });
         });
 
-        // ========================
-        // INITIAL BUTTON STATE
-        // ========================
         updateButtons();
     }
-
 
 
     //--------Posting/"Miiverse" as it is codenamed here, since it used to be actual Miiverse posts-------
@@ -3949,6 +3972,10 @@ function initVinoHome() {
                     var olvModalHtml = $(".miiverse-modal-template").html();
                     $(".miiverse-modal").html(olvModalHtml);
                     $(".miiverse-modal").show();
+                    //temporal
+                    if (head2.find("p").attr("data-has-marquee")) {
+                        head2.find("p").removeClass("marquee")
+                    }
                     miiverseContainer = $(".miiverse-modal .post-container").makeScrollContainer(false);
                     setMiiverseListeners();
 
@@ -3994,14 +4021,39 @@ function initVinoHome() {
                             headOlv.attr("data-olv-episodeid", details.program.showId)
                             headOlv.attr("data-olv-parentid", details.program.seriesId)
 
-                            var text = programName;
+                            var text = details.channel.name + ": " + programName;
 
                             if (programEpisode && programEpisode != programName) {
                                 // Normal case: add episode title if it exists and is different
                                 text += "「" + programEpisode + "」";
                             }
 
-                            headOlv.find("span").text(text);
+                            if (details.program.isLive) {
+                                text = tvii.getLoc("vino.home.olv.modal.header_title_live", text)
+                            } else if (details.program.isNew) {
+                                text = tvii.getLoc("vino.home.olv.modal.header_title_new", text)
+                            }
+
+                            const span = headOlv.find("span")
+                            const p2 = headOlv.find("p")
+
+                            if (!span.length || !p2.length) return;
+
+                            span.html(text);
+                            p2.removeAttr("data-has-marquee");
+                            p2.removeClass("marquee");
+
+                            // force layout
+                            const pEl = p2[0];
+                            const spanEl = span[0];
+
+                            pEl.offsetWidth;
+                            spanEl.offsetWidth;
+                            // enable marquee if overflow
+                            if (spanEl.scrollWidth > pEl.clientWidth) {
+                                p2.attr("data-has-marquee", "1")
+                                p2.addClass("marquee");
+                            }
 
                             vino.navi_setMoveMethod(1);
                             requestPostsMiiversePage();
@@ -4027,6 +4079,11 @@ function initVinoHome() {
         headOlv.attr("data-olv-episodeid", "")
         headOlv.attr("data-olv-channelid", "")
         headOlv.attr("data-olv-parentid", "")
+        headOlv.find("p").removeAttr("data-has-marquee");
+        headOlv.find("p").removeClass("marquee");
+        if (head2.find("p").attr("data-has-marquee")) {
+            head2.find("p").addClass("marquee")
+        }
         headOlv.find("span").text("");
         if (miiverseContainer) {
             detachMiiverseScrollListener(); // ensure no old listeners
@@ -4191,7 +4248,7 @@ function initVinoHome() {
     var miiverseIsLoading = false;
     var miiverseReachedEnd = false;
     var miiversePostsLimit = 25;
-    var miiverseMaxPosts = 280;
+    var miiverseMaxPosts = 300;
     var miiverseLoadedCount = 0;
 
     var miiverseContainer = null;
@@ -4249,10 +4306,12 @@ function initVinoHome() {
                     $(".miiverse-post").removeClass("disabled");
                     $(".miiverse-refresh").removeClass("disabled");
                     $(".miiverse-doodle-default").removeClass("disabled");
-                    miiverseContainer.append(
-                        $("<div>").addClass("no-posts").html(
-                            tvii.getLoc("vino.home.olv.no_posts"))
-                    );
+                    if (isFirstLoad) {
+                        miiverseContainer.append(
+                            $("<div>").addClass("no-posts").html(
+                                tvii.getLoc("vino.home.olv.no_posts"))
+                        );
+                    }
                     disableTopBotHeaders(false);
                     return;
                 }
@@ -4470,7 +4529,6 @@ function initVinoHome() {
     function buildPostElement(post) {
         var miiData = post.mii_data;
         var postId = post.post_id;
-        var replyAmount = 0;
         var miitooAmount = 0;
         var feeling = post.feeling_id;
         var feelingQ = getFeelingQueryFromPostXml(feeling);
@@ -4499,7 +4557,7 @@ function initVinoHome() {
 
         var miiImg = new Image();
         miiImg.src =
-            "/api/v1/miis.png?width=75&expression=" +
+            "/api/v1/miis.png?width=65&expression=" +
             feelingQ +
             "&data=" +
             encodeURIComponent(miiData) +
@@ -4516,6 +4574,9 @@ function initVinoHome() {
                     vino.soundPlayVolume("SE_WORD_MII", 30);
                 })
                 .on("click", function () {
+                    if (!vino.navi_getRect()) {
+                        vino.lyt_startTouchEffect();
+                    }
                     openMiiUserDetailScreen(miiEl.attr("data-user-pid"));
                 });
         })();
@@ -4541,7 +4602,7 @@ function initVinoHome() {
         }
 
         var ss = new Image();
-        ss.src = postScreenshot ? "/images/cdn/" + postScreenshot + "?width=384" : "/img/noimg.png";
+        ss.src = postScreenshot ? "/images/cdn/" + postScreenshot + "?width=351" : "/img/noimg.png";
 
         var ssDiv = $("<div>");
         ssDiv.append(ss).addClass("screenshot").attr("tabindex", "0").attr("navi_target", "").attr("data-screenshot", postScreenshot ? postScreenshot : "/img/noimg.ong")
@@ -4555,6 +4616,11 @@ function initVinoHome() {
         } else {
             postRCont.append(content);
         }
+
+        var postHeader = $("<header>")
+        postHeader.append(username);
+        postHeader.append(date);
+        postCont.append(postHeader);
 
         postCont.append(postRCont);
 
@@ -4736,33 +4802,6 @@ function initVinoHome() {
             });
         })(ssDiv);
 
-        var jumpPost = $("<button>")
-            .addClass("jump-post")
-            .attr("navi_target", "")
-            .attr("navi_no_reset", "")
-            .attr("tabindex", 0);
-        (function (id) {
-
-            jumpPost.on("mousedown", function () {
-                vino.soundPlayVolume("SE_COMMON_TOUCH_ON", 30)
-                $(this).addClass("hover");
-            })
-
-            jumpPost.on("mouseup mouseout", function () {
-                $(this).removeClass("hover");
-            })
-
-            jumpPost.on("click", function () {
-                if (!vino.navi_getRect()) {
-                    vino.lyt_startTouchEffect();
-                }
-                vino.soundPlayVolume("SE_WAVE_OK_TOUCH_OFF", 30);
-                alert(
-                    tvii.getLoc("vino.home.olv.crosspost.error.no_miiverse_yet")
-                );
-            });
-        })(postId);
-
         if (isSpoiler) {
             postRCont.append(spoilerBut);
         }
@@ -4771,15 +4810,13 @@ function initVinoHome() {
         if (postScreenshot && postScreenshot.length) {
             postMeta.append(doodleButton);
         }
-        postMeta.append(jumpPost);
         postMeta.append(yeahCount);
 
         postCont.append(postMeta);
         postCont.append(postHref);
 
         $postEl.append(miiEl);
-        $postEl.append(username);
-        $postEl.append(date);
+
         $postEl.append(postCont);
 
         return $postEl;
@@ -4789,6 +4826,10 @@ function initVinoHome() {
 
     function openDoodleModal(screenshot) {
         detachMiiverseScrollListener();
+        //temporal
+        if (headOlv.find("p").attr("data-has-marquee")) {
+            headOlv.find("p").removeClass("marquee")
+        }
         miiverseContainer.data("makeScrollContainer").stop();
         miivContScr = miiverseContainer.scrollTop();
         miiverseContainer.hide();
@@ -4828,6 +4869,10 @@ function initVinoHome() {
         //Collect garbage from disposed modal
         vino.requestGarbageCollect();
         miiverseContainer.show();
+        //temporal
+        if (headOlv.find("p").attr("data-has-marquee")) {
+            headOlv.find("p").addClass("marquee")
+        }
         miiverseContainer.scrollTop(miivContScr);
         attachMiiverseScrollListener();
     }
@@ -5616,7 +5661,7 @@ function initVinoHome() {
         abortReqsXhr();
         showMiiversePostPreview(false);
         $(".footer .bottom").addClass("guideopt");
-        tvii.pushStateWithQuery("scene", "recomtab", false);
+        tvii.pushStateWithQuery("scene", "guidetab", false);
         clearInterval(window.infoUpdInterval);
         vino.lyt_reset();
         $(".guide-view").empty();

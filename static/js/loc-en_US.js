@@ -115,6 +115,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.spoilers": 'Mark as Spoiler',
     "vino.home.olv.crosspost.post.doodlebut": 'Doodle',
 
+    "vino.home.olv.modal.header_title_new": "<b>New</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">Live</b> %s',
+
     "vino.home.olv.modal.jump_miiverse_post": "View this user's latest post on Miiverse",
     "vino.home.olv.modal.is_friends": "Friends",
     "vino.home.olv.modal.is_myself": "Myself",

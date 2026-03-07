@@ -741,7 +741,7 @@ router.post(
 
             if (existing) {
                 //what the miiverse yeah endpoint does anyway
-                res.status(200).json({ status: "success" });
+                return res.status(200).json({ status: "success" });
             }
 
             await db("empathies").insert({
@@ -790,7 +790,7 @@ router.delete(
 
             if (!existing) {
                 // is this the right error code?
-                res.status(500).json({ status: "empathy does not exist" });
+                return res.status(500).json({ status: "empathy does not exist" });
             }
 
             await db("empathies")
