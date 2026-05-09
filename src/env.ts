@@ -32,6 +32,8 @@ export const env = createEnv({
 
     // yoinked from google's ai on having an array as an .env var :/
     VINO_JP_STAFF_PIDS: z.string().transform((str) => str.split(",").map((s) => s.trim())),
+
+    VINO_JP_MII_IMAGE_PNG_BASE_URL: z.string().url()
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

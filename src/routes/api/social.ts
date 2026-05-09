@@ -1,6 +1,7 @@
 import express, { type Request, type Response, type Router } from "express";
 import multer from "multer";
 import { env } from "../../env.ts";
+import { getMiiImageUrl, expressionFromFeeling } from "../../utils/other.ts";
 import crypto from "crypto";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
@@ -454,30 +455,14 @@ router.post(
             if (post && post.length > 0) {
                 const postIdForLink = post[0];
 
-                const getFeelingQueryFromNumber = (
-                    feeling_id: number
-                ): string => {
-                    switch (feeling_id) {
-                        case 1:
-                            return "smile_open_mouth";
-                        case 2:
-                            return "like_wink_left";
-                        case 3:
-                            return "surprise_open_mouth";
-                        case 4:
-                            return "frustrated";
-                        case 5:
-                            return "sorrow";
-                        default:
-                            return "normal";
-                    }
-                };
 
                 try {
                     const webhookUrl = env.VINO_JP_CONFIG_DC_WEBHOOK_URL;
 
                     const miiName = account.mii_name || "Unknown Mii";
-                    const miiImage = `https://mii-unsecure.ariankordi.net/miis/image.png?verifyCRC16=0&width=128&expression=${getFeelingQueryFromNumber(feelingId)}&data=${encodeURIComponent(account.mii_data)}&type=face`;
+                    const expression = expressionFromFeeling(feelingId);
+                    const miiImageUrl = getMiiImageUrl(account.mii_data,
+                      `type=face&width=128&expression=${expression}`);
 
                     const isSpoilerPost = safeIsSpoiler === 1;
 
@@ -485,7 +470,7 @@ router.post(
 
                     if (isSpoilerPost) {
                         embed = {
-                            author: { name: miiName, icon_url: miiImage },
+                            author: { name: miiName, icon_url: miiImageUrl },
                             title: postForm.topic_tag || "Untitled Topic",
                             url: `https://projectrose.cafe/tvii/olv/topic/${encodeURIComponent(postForm.topic_tag)}`,
                             description: `**[Spoiler, View in browser](https://projectrose.cafe/tvii/olv/post/${encodeURIComponent(postIdForLink!)})**`,
@@ -497,7 +482,7 @@ router.post(
                         description += `\n\n[View in browser](https://projectrose.cafe/tvii/olv/post/${encodeURIComponent(postIdForLink!)})`;
 
                         embed = {
-                            author: { name: miiName, icon_url: miiImage },
+                            author: { name: miiName, icon_url: miiImageUrl },
                             title: postForm.topic_tag || "Untitled Topic",
                             url: `https://projectrose.cafe/tvii/olv/topic/${encodeURIComponent(postForm.topic_tag)}`,
                             description,

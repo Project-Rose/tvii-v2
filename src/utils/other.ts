@@ -1,3 +1,5 @@
+import { env } from "../env.ts";
+
 // All NN-allowed countries grouped by region
 export const NN_COUNTRIES = {
     JPN: [
@@ -27,3 +29,20 @@ export function getRegion(country: string): "USA" | "EUR" | "JPN" {
     if (NN_COUNTRIES.USA.includes(c)) return "USA";
     return "EUR";
 }
+
+/** Gets Mii Studio API expression string from Miiverse "feeling" ID. */
+export const expressionFromFeeling = (feeling: number) =>
+    [ /* 0 */ 'normal',
+      /* 1 */ 'smile_open_mouth',
+      /* 2 */ 'like_wink_left',
+      /* 3 */ 'surprise_open_mouth',
+      /* 4 */ 'frustrated',
+      /* 5 */ 'sorrow'
+    ][feeling] || 'normal';
+
+/**
+ * @param data Compatible Base64 Mii data.
+ * @param param URL query parameters, e.g.: `width=128&expression=normal`
+ */
+export const getMiiImageUrl = (data: string, param: string) =>
+    `${env.VINO_JP_MII_IMAGE_PNG_BASE_URL}?data=${data}&verifyCRC16=0&resourceType=middle&${param}`;

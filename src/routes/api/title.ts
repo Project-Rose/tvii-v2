@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import Redis from "ioredis";
 import { env } from "../../env.ts";
+import { getMiiImageUrl } from "../../utils/other.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,14 +127,15 @@ router.get("/", async (req: Request, res: Response) => {
         const randomBgPath =
             backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
-        const mii_url =
-            "https://mii-unsecure.ariankordi.net/miis/image.png?data=" +
-            encodeURIComponent(randomUser.mii_data) +
-            "&type=face&width=226&resourceType=middle&texResolution=168&verifyCRC16=0";
-
-        const [bg, mii, mii_bg, name_bg] = await Promise.all([
+        const miiImageUrl = getMiiImageUrl(
+            randomUser.mii_data,
+            `type=face&width=226&texResolution=168`);
+        const [bg, miiImage, mii_bg, name_bg] = await Promise.all([
             loadImage(randomBgPath!),
-            loadImage(mii_url),
+            loadImage(miiImageUrl).catch((err: unknown) => {
+                console.warn("Mii image unavailable while obtaining card", err);
+                return null;
+            }),
             loadImage(mii_bg_path),
             loadImage(sign_path)
         ]);
@@ -144,7 +146,9 @@ router.get("/", async (req: Request, res: Response) => {
 
         ctx.drawImage(bg, 0, 0);
         ctx.drawImage(mii_bg, mii_x, mii_y);
-        ctx.drawImage(mii, mii_x + 4, mii_y + 4);
+        if (miiImage) {
+            ctx.drawImage(miiImage, mii_x + 4, mii_y + 4);
+        }
         ctx.drawImage(name_bg, 184, 310);
 
         // title
