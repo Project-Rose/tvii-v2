@@ -9,6 +9,7 @@ import { BskyClient } from "../../utils/bsky.ts";
 import { env } from "../../env.ts";
 import crypto from "crypto";
 import { logger } from "../../utils/logger.ts";
+import { getRealIpFromRequest } from "../../utils/other.ts";
 
 // Key must be 32 bytes for AES-256
 const AES_KEY = Buffer.from(env.VINO_JP_CONFIG_BSKY_AES_KEY, "base64");
@@ -134,21 +135,7 @@ router.post(
             const tvProviderTzChosen = data.tv_provider_tz;
 
             // Extract the user's IP
-            let ip =
-                req.headers["cf-connecting-ip"] ||
-                req.headers["x-forwarded-for"] ||
-                req.connection.remoteAddress ||
-                req.ip;
-
-            // If x-forwarded-for contains multiple IPs, take the first
-            if (typeof ip === "string" && ip.includes(",")) {
-                ip = ip.split(",")[0];
-            }
-
-            // Strip IPv6 prefix
-            if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                ip = ip.substring(7);
-            }
+            const ip = getRealIpFromRequest(req);
 
             const ipReq = await fetch(`https://ipwho.is/${ip}`);
             const ipInfo = await ipReq.json() as any;

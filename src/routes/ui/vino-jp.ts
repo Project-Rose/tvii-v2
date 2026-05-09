@@ -1,8 +1,8 @@
 import express, { type Request, type Response, type Router } from "express";
 import { join } from "path";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
-import { db } from "../..//utils/db.ts";
-import { getRegion } from "../..//utils/other.ts";
+import { db } from "../../utils/db.ts";
+import { getRealIpFromRequest, getRegion } from "../../utils/other.ts";
 import Mii from "@pretendonetwork/mii-js";
 
 const router: Router = express.Router();
@@ -111,20 +111,7 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
                 const mii = new Mii(Buffer.from(mii_data, "base64"));
                 const mii_bday = mii.birthDay + "/" + mii.birthMonth;
 
-                // Extract real IP (Cloudflare first)
-                let ip =
-                    req.headers["cf-connecting-ip"] ||
-                    req.headers["x-forwarded-for"] ||
-                    req.connection.remoteAddress ||
-                    req.ip;
-
-                if (typeof ip === "string" && ip.includes(",")) {
-                    ip = ip.split(",")[0];
-                }
-
-                if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                    ip = ip.substring(7);
-                }
+                const ip = getRealIpFromRequest(req);
 
                 // timezone lookup
                 const ipReq = await fetch(`https://ipwho.is/${ip}`);

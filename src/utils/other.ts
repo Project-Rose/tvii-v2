@@ -30,6 +30,28 @@ export function getRegion(country: string): "USA" | "EUR" | "JPN" {
     return "EUR";
 }
 
+export function getRealIpFromRequest(req: import('express').Request) {
+  // Extract the user's IP (Cloudflare first)
+  let ip =
+      // WARNING: If not running behind Cloudflare, this can be spoofed.
+      req.headers["cf-connecting-ip"] as string | undefined  ||
+      req.headers["x-forwarded-for"] as string | undefined  ||
+      req.socket.remoteAddress ||
+      req.ip;
+
+  // If x-forwarded-for contains multiple IPs, take the first
+  if (typeof ip === "string" && ip.includes(",")) {
+      ip = ip.split(",")[0];
+  }
+
+  // Strip IPv6 prefix
+  if (typeof ip === "string" && ip.startsWith("::ffff:")) {
+      ip = ip.substring(7);
+  }
+
+  return ip;
+}
+
 /** Gets Mii Studio API expression string from Miiverse "feeling" ID. */
 export const expressionFromFeeling = (feeling: number) =>
     [ /* 0 */ 'normal',
