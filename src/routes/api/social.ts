@@ -2,6 +2,7 @@ import express, { type Request, type Response, type Router } from "express";
 import multer from "multer";
 import { env } from "../../env.ts";
 import { getMiiImageUrl, expressionFromFeeling } from "../../utils/other.ts";
+import NnasClient from "../../utils/nnasClient.ts";
 import crypto from "crypto";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
@@ -157,7 +158,7 @@ router.get(
     "/getUserData/:pid",
     async (req: Request, res: Response): Promise<any> => {
         try {
-            const pid = req.params.pid!;
+            const pid = req.params.pid as string;
             if (!pid) return res.status(400).json({ error: "Missing pid" });
 
             const account = await db("account")
@@ -189,14 +190,7 @@ router.get(
                 latest_post_id = JSON.parse(cachedUserData).latest_post_id;
             } else {
                 try {
-                    const miiResp = await fetch(
-                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${pid}&api_id=1`
-                    );
-
-                    if (miiResp.ok) {
-                        const miiData = await miiResp.json() as any;
-                        user_id = miiData?.user_id || null;
-                    }
+                    user_id = (await NnasClient.miiFromPid(pid)).userId;
 
                 } catch (err) {
                     console.error("Mii fetch error:", err);
