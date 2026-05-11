@@ -4,7 +4,7 @@ import { parseServiceToken } from "../../utils/serviceToken.ts";
 import { db } from "../../utils/db.ts";
 import { getRealIpFromRequest, getRegion } from "../../utils/other.ts";
 import Mii from "@pretendonetwork/mii-js";
-import NnasClient from "../../utils/nnasClient.ts";
+import NnidResolver from "../../utils/NnidResolver.mjs";
 
 const router: Router = express.Router();
 
@@ -99,9 +99,9 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
     if (now.getTime() - lastUpdate.getTime() > oneHour) {
         try {
-            const userData = await NnasClient.miiFromPid(String(token.pid));
+            const userData = await NnidResolver.miiFromPid(String(token.pid));
             const mii_name = userData.name;
-            const mii_data = userData.data;
+            const mii_data = userData.miiData;
 
             const mii = new Mii(Buffer.from(mii_data, "base64"));
             const mii_bday = mii.birthDay + "/" + mii.birthMonth;

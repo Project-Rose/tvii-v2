@@ -2,7 +2,7 @@ import express, { type Request, type Response, type Router } from "express";
 import multer from "multer";
 import { env } from "../../env.ts";
 import { getMiiImageUrl, expressionFromFeeling } from "../../utils/other.ts";
-import NnasClient from "../../utils/nnasClient.ts";
+import NnidResolver from "../../utils/NnidResolver.mjs";
 import crypto from "crypto";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
@@ -190,8 +190,7 @@ router.get(
                 latest_post_id = JSON.parse(cachedUserData).latest_post_id;
             } else {
                 try {
-                    user_id = (await NnasClient.miiFromPid(pid)).userId;
-
+                    user_id = (await NnidResolver.miiFromPid(pid)).userId;
                 } catch (err) {
                     console.error("Mii fetch error:", err);
                 }

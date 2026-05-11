@@ -7,7 +7,7 @@ import { db } from "../../utils/db.ts";
 import { z } from "zod";
 import { BskyClient } from "../../utils/bsky.ts";
 import { env } from "../../env.ts";
-import NnasClient from "../../utils/nnasClient.ts";
+import NnidResolver from "../../utils/NnidResolver.mjs";
 import crypto from "crypto";
 import { logger } from "../../utils/logger.ts";
 import { getRealIpFromRequest } from "../../utils/other.ts";
@@ -75,7 +75,7 @@ router.post(
 
             let miiResponse;
             try {
-                miiResponse = await NnasClient.miiFromPid(String(principalId));
+                miiResponse = await NnidResolver.miiFromPid(String(principalId));
             } catch (err) {
                 console.warn(
                     `Mii data fetching error for: ${token.pid} ${token.serial_number}`, err
@@ -86,7 +86,7 @@ router.post(
             }
 
             const mii_name = miiResponse.name;
-            const mii_data = miiResponse.data;
+            const mii_data = miiResponse.miiData;
 
             const mii = new Mii(Buffer.from(mii_data, "base64"));
 
