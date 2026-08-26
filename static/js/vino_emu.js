@@ -4,6 +4,7 @@ let loadingX = 0;
 let loadingY = 0;
 let loadingW = 0;
 let loadingH = 0;
+let loadingAppearEnabled = false;
 if (typeof vino === "undefined") {
     // If not on a WiiU, emulate the Vino and WiiU Gamepad APIs.
     console.log("Initialize API emulation");
@@ -118,6 +119,7 @@ if (typeof vino === "undefined") {
                 div.style.border = "4px solid red";
                 div.style.backgroundColor = "rgb(255 0 0 / 10%)";
                 div.style.boxSizing = "border-box";
+                div.style.borderRadius = "6px";
                 div.style.pointerEvents = "none"; // optional: so it doesn't block interaction
                 div.style.zIndex = "9998"; // ensure it's on top
 
@@ -182,83 +184,83 @@ if (typeof vino === "undefined") {
         info_getLanguage: function () {
             return debugConsole.language;
         },
-    loading_setIconRect: function (x, y, w, h) {
-        loadingX = x;
-        loadingY = y;
-        loadingW = w;
-        loadingH = h;
-        console.log("Set loading icon position at", x, y, w, h);
+        loading_setIconRect: function (x, y, w, h) {
+            loadingX = x;
+            loadingY = y;
+            loadingW = w;
+            loadingH = h;
+            console.log("Set loading icon position at", x, y, w, h);
 
-        if (!loadingCube) return;
-        loadingCube.style.left = loadingX + "px";
-        loadingCube.style.top = loadingY + "px";
-        loadingCube.style.width = loadingW + "px";
-        loadingCube.style.height = loadingH + "px";
-    },
+            if (!loadingCube) return;
+            loadingCube.style.left = loadingX + "px";
+            loadingCube.style.top = loadingY + "px";
+            loadingCube.style.width = loadingW + "px";
+            loadingCube.style.height = loadingH + "px";
+        },
 
-    loading_setIconAppear: function (show) {
-        if (show) {
-            if (!loadingCube) {
-                // create cube
-                loadingCube = document.createElement("div");
-                loadingCube.style.position = "fixed";
-                loadingCube.style.left = loadingX + "px";
-                loadingCube.style.top = loadingY + "px";
-                loadingCube.style.width = loadingW + "px";
-                loadingCube.style.height = loadingH + "px";
-                loadingCube.style.zIndex = "9999";
-                loadingCube.style.background = "rgba(0,0,0,0.5)";
-                loadingCube.style.opacity = "0";
-                loadingCube.style.display = "block";
-                loadingCube.style.transition = "opacity 0.1s ease"; // fast fade-in
-                document.body.appendChild(loadingCube);
+        loading_setIconAppear: function (show) {
+            loadingAppearEnabled = show;
 
-                // trigger fade-in
-                requestAnimationFrame(() => {
-                    loadingCube.style.opacity = "1";
-                });
-            } else {
-                // already exists → only fade-in if hidden
-                if (loadingCube.style.display === "none" || loadingCube.style.opacity === "0") {
+            if (show) {
+                if (!loadingCube) {
+                    loadingCube = document.createElement("div");
+                    loadingCube.style.position = "fixed";
+                    loadingCube.style.left = loadingX + "px";
+                    loadingCube.style.top = loadingY + "px";
+                    loadingCube.style.width = loadingW + "px";
+                    loadingCube.style.height = loadingH + "px";
+                    loadingCube.style.zIndex = "9999";
+                    loadingCube.style.background = "rgba(0,0,0,0.5)";
+                    loadingCube.style.opacity = "0";
                     loadingCube.style.display = "block";
-                    loadingCube.style.transition = "opacity 0.1s ease"; // fade-in faster
-                    requestAnimationFrame(() => {
+                    loadingCube.style.transition = "opacity 0.1s ease";
+                    document.body.appendChild(loadingCube);
+
+                    requestAnimationFrame(function () {
                         loadingCube.style.opacity = "1";
                     });
+                } else {
+                    if (loadingCube.style.display === "none" || loadingCube.style.opacity === "0") {
+                        loadingCube.style.display = "block";
+                        loadingCube.style.transition = "opacity 0.1s ease";
+                        requestAnimationFrame(function () {
+                            loadingCube.style.opacity = "1";
+                        });
+                    }
+                }
+            } else {
+                if (loadingCube) {
+                    loadingCube.style.transition = "opacity 0.4s ease";
+                    loadingCube.style.opacity = "0";
+                    setTimeout(function () {
+                        if (loadingCube) {
+                            loadingCube.style.display = "none";
+                        }
+                    }, 500);
                 }
             }
-        } else {
-            if (loadingCube) {
-                // fade out with slower speed
-                loadingCube.style.transition = "opacity 0.4s ease"; 
-                loadingCube.style.opacity = "0";
-                setTimeout(() => {
-                    if (loadingCube) {
-                        loadingCube.style.display = "none";
-                    }
-                }, 500); // match fade-out duration
-            }
-        }
 
-        console.log((show ? "Show" : "Hide") + " loading icon.");
-    },
+            console.log((show ? "Show" : "Hide") + " loading icon.");
+        },
 
-    loading_setIconVisibility: function (show) {
-        if (!loadingCube) return;
-        loadingCube.style.transition = "none"; // disable animation
-        loadingCube.style.opacity = show ? "1" : "0";
-        loadingCube.style.display = show ? "block" : "none";
-        // restore transition defaults for appear
-        setTimeout(() => {
-            if (loadingCube) {
-                loadingCube.style.transition = "opacity 0.2s ease"; // keep fade-in default
-            }
-        }, 0);
+        loading_setIconVisibility: function (show) {
+            if (!loadingCube) return;
 
-        console.log(
-            (show ? "Instantly show" : "Instantly hide") + " loading icon."
-        );
-    },
+            // If appear system disabled it, never allow visibility to show it
+            if (!loadingAppearEnabled && show) return;
+
+            loadingCube.style.transition = "none";
+            loadingCube.style.opacity = show ? "1" : "0";
+            loadingCube.style.display = show ? "block" : "none";
+
+            setTimeout(function () {
+                if (loadingCube) {
+                    loadingCube.style.transition = "opacity 0.2s ease";
+                }
+            }, 0);
+
+            console.log((show ? "Instantly show" : "Instantly hide") + " loading icon.");
+        },
         soundPlay: function (soundLabel) {
             console.log("Played sound effect " + soundLabel);
             return 1;

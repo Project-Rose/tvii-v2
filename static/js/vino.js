@@ -507,23 +507,6 @@ var tvii = {
             $(".wrapper").addClass("none");
         }
     },
-    clearEvents: function () {
-        $(document).off("mousedown");
-        $(document).off("mousemove");
-        $(document).off("mouseup");
-        $(document).off("scroll");
-        $(document).off("click");
-        $(window).off("click");
-        $(window).off("scroll");
-        $(window).off("mousemove");
-        $(window).off("mousedown");
-        $(".container").off("mousedown");
-        $(".container").off("mousemove");
-        $(".container").off("mouseup");
-        clearInterval(window.infoUpdInterval);
-        clearInterval(window.clockInterval);
-        clearTimeout(window.clockTimeout);
-    },
     setButtonActions: function () {
         function escapeForClassSelector(str) {
             return str.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
@@ -860,6 +843,43 @@ var tvii = {
     getServerPID: function () {
         return parseInt($("body").attr("data-pid"));
     },
+    getHourTimestampForGuide: function (hour, dayOffset) {
+
+        if (dayOffset === undefined) dayOffset = 0;
+
+        var offsetSeconds = tvii.getUtcOffset(); // e.g. -18000
+        var offsetMillis = offsetSeconds * 1000;
+
+        // 1. True UTC now
+        var nowUtcMillis = Date.now();
+
+        // 2. Shift into custom timezone
+        var localMillis = nowUtcMillis + offsetMillis;
+        var d = new Date(localMillis);
+
+        // 3. Move day
+        if (dayOffset !== 0) {
+            d.setUTCDate(d.getUTCDate() + dayOffset);
+        }
+
+        // 4. Force the hour block
+        d.setUTCHours(hour, 0, 0, 0);
+
+        // 5. Format as "YYYY-MM-DD HH:mm:ss"
+        function pad(n) {
+            return n < 10 ? "0" + n : "" + n;
+        }
+
+        var year = d.getUTCFullYear();
+        var month = pad(d.getUTCMonth() + 1);
+        var day = pad(d.getUTCDate());
+        var h = pad(d.getUTCHours());
+        var minute = "00";
+        var second = "00";
+
+        return year + "-" + month + "-" + day +
+            " " + h + ":" + minute + ":" + second;
+    },
     getLockedHourTimestamp: function () {
         var offsetSeconds = tvii.getUtcOffset(); // e.g. -18000
         var offsetMillis = offsetSeconds * 1000;
@@ -907,11 +927,6 @@ var tvii = {
             parts[5] | 0         // second
         ) / 1000; // seconds (to match your existing logic)
     },
-    getDateWithOffset: function () {
-        var now = new Date();
-        var utc = now.getTime() + now.getTimezoneOffset() * 60000; // always gives real UTC
-        return new Date(utc + tvii.getUtcOffset() * 1000); // offset from UTC
-    },
     setUpPageTip: function () {
         var span = document.querySelector(
             ".program-list .content .tips span:nth-of-type(2)"
@@ -937,7 +952,6 @@ var tvii = {
 
         // --- Animated special rule ---
         if (genreID === "A") {
-            console.log(rating)
             if (rating == "TV14" || rating == "TVMA") {
                 return "adult_animated";
             }
@@ -1903,6 +1917,7 @@ function initVinoSetup() {
 }
 
 function initVinoHome() {
+    setBannerColorByDay();
     tvii.templates.setUpLocHTML();
 
     window.addEventListener("popstate", function (e) {
@@ -1932,7 +1947,7 @@ function initVinoHome() {
     setupClock();
     tvii.setClassHoverToEls(
         $(
-            ".exit, .menu, .back, .tune-in, .miiverse-button, .miiverse-post"
+            ".exit, .help, .menu, .back, .tune-in, .miiverse-button, .miiverse-post, .guide-button a:first-child"
         )
     );
 
@@ -1949,6 +1964,15 @@ function initVinoHome() {
         setTimeout(function () {
             vino.exit();
         }, 0)
+    });
+
+    $(".miiverse-help").on("click", function (e) {
+        if (isHeaderButtonBlocked) return;
+        if (!vino.navi_getRect()) {
+            vino.lyt_startTouchEffect();
+        }
+        vino.soundPlayVolume("SE_HELP_TOUCH_OFF", 30);
+        alert(tvii.getLoc("vino.home.olv.help"))
     });
 
     $(".footer .back").on("click", function (e) {
@@ -1970,7 +1994,17 @@ function initVinoHome() {
         if (isHeaderButtonBlocked) return;
         if (isSendingIR) return;
 
-        var chNum = $(".program-details").attr("data-chnum");
+        var isProgramList = $(".program-list").is(":visible");
+        //Depending of the page
+        var isProgramDetails = $(".program-fulldetails-page .content").is(":visible");
+
+        var chNum;
+        if (isProgramList) {
+            chNum = $(".program-details").attr("data-chnum");
+        } else if (isProgramDetails) {
+            chNum = $(".program-fulldetails-page .content").attr("data-chnum");
+        }
+
         if (!chNum) return;
 
         if (e.originalEvent) {
@@ -1985,17 +2019,18 @@ function initVinoHome() {
 
         var digits = chNum.split("");
         var index = 0;
+        var digit_timeout = 600;
 
         function sendNextDigit() {
             if (index >= digits.length) {
-                // After digits, send OK (code 60)
-                vino.ir_send(60, 0);
+                /* After digits, send OK (code 60)
+                vino.ir_send(60, 0);*/
 
                 // Play remote finish sound
                 setTimeout(function () {
                     vino.soundPlayVolume("SE_REMOTE_FINISH", 30);
                     isSendingIR = false;
-                }, 550);
+                }, 0);
                 return;
             }
 
@@ -2038,20 +2073,175 @@ function initVinoHome() {
                     code = 55;
                     break;
                 default:
-                    setTimeout(sendNextDigit, 550); // Skip invalid
+                    setTimeout(sendNextDigit, digit_timeout); // Skip invalid
                     return;
             }
 
             vino.ir_send(code, 0);
-            setTimeout(sendNextDigit, 550);
+            setTimeout(sendNextDigit, digit_timeout);
         }
 
         sendNextDigit();
     });
 
+    function openSettingsModalFromMenu() {
+        var form = new FormData();
+
+        $(".menu-modal").hide();
+        var html = $(".menu-settings-all-template").html();
+        var settings = $(".menu-settings-all");
+        settings.html(html).show();
+
+        var back = settings.find(".back-modal");
+        tvii.setClassHoverToEls(back);
+
+        $(".button-settings").on("click", function () {
+            var t = $(this);
+            settings.find(".screen-0").hide();
+            settings.find(".menu-header span").text(t.text());
+            settings.find(".screen-" + t.attr("data-setting-type")).show();
+        })
+
+        var country = tvii.getCountry();
+
+        var isUS = country === "US";
+        var isCA = country === "CA";
+
+        var usZipCodeInput = settings.find(".zipcode-input .zip-usa");
+        var caZipCodeInput = settings.find(".zipcode-input .zip-canada");
+
+        if (isUS) {
+            usZipCodeInput.removeClass("none");
+        } else if (isCA) {
+            caZipCodeInput.removeClass("none");
+        }
+
+        back.on("click", function () {
+            var isSettingScreen = settings.find(".screen-0:visible").length;
+            if (!isSettingScreen) {
+                settings.find(".settings-screen:visible").first().hide();
+                settings.find(".menu-header span").text("Settings");
+                settings.find(".screen-0").show();
+            } else {
+                back.off("click");
+                settings.empty().hide();
+                $(".menu-modal").show();
+            }
+        });
+    }
+
+    function openMenuModal() {
+        var isProgramList = $(".program-list").is(":visible");
+        //Depending of the page
+        var isGuideView = $(".guide-view").is(":visible");
+
+        var guideView = null;
+        var guideContainer = null;
+
+        if (isProgramList) {
+            vino.lyt_reset();
+        } else if (isGuideView) {
+            guideView = $(".guide-view");
+            guideContainer = guideView.find(".guide-container");
+
+            guideContainer.data("makeScrollContainer").stop();
+            var scrollX = guideContainer.scrollLeft();
+            var scrollY = guideContainer.scrollTop();
+
+            guideContainer
+                .attr("data-guide-scroll-x", scrollX)
+                .attr("data-guide-scroll-y", scrollY);
+
+            guideView.hide();
+        }
+
+        var html = $(".menu-screen-template").html();
+        var menu = $(".menu-modal");
+        //this function is used for popups to hide the OPACITY of a loading icon that might appear.
+        vino.loading_setIconVisibility(false);
+        menu.html(html).show();
+
+        menu.find(".menu-section a, .menu-section-2 a").on("click", function () {
+            if (!$(this).find("input").length) {
+                var target = $(this);
+                if (!target.length) return;
+
+                target.focus();
+
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+
+                vino.navi_setToFocused(true);
+                vino.navi_decide();
+                document.activeElement.blur();
+                vino.soundPlayVolume("SE_TOP", 30);
+            } else {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+            }
+        });
+
+        menu.find(".menu-section-2 a:nth-child(1)").on("click", function () {
+
+        })
+
+        menu.find(".menu-section-2 a:nth-child(2)").on("click", function () {
+
+        })
+
+        menu.find(".menu-section-2 a:nth-child(3)").on("click", function () {
+            openSettingsModalFromMenu();
+        })
+
+
+        menu.find(".close-button").on("click", function (e) {
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+            }
+            vino.soundPlayVolume("SE_CLOSE", 30);
+            menu.find(".menu-section-2 a, .menu-section a").off("click");
+            menu.find(".close-button").off("click");
+            menu.empty().hide();
+            vino.requestGarbageCollect();
+
+            if (isProgramList) {
+                drawLyt();
+            } else if (isGuideView) {
+                var x = parseInt(guideContainer.attr("data-guide-scroll-x"), 10) || 0;
+                var y = parseInt(guideContainer.attr("data-guide-scroll-y"), 10) || 0;
+
+                guideView.show();
+
+                guideContainer.scrollLeft(x);
+                guideContainer.scrollTop(y);
+
+                guideView.find(".guide-channel-container").scrollTop(y);
+                guideView.find(".guide-time-container").scrollLeft(x);
+
+                guideView = null;
+                guideContainer = null;
+            }
+
+            vino.loading_setIconVisibility(true);
+        })
+    }
+
     $(".header .menu").on("click", function (e) {
-        e.preventDefault();
-        alert(tvii.getLoc("vino.home.not_available_feature"));
+        return alert(tvii.getLoc("vino.home.not_available_feature"));
+        if (isHeaderButtonBlocked) return;
+        if (e.originalEvent) {
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_POPUP_TOUCH_OFF", 30);
+        } else {
+            vino.soundPlayVolume("SE_POPUP", 30);
+        }
+        openMenuModal();
     })
 
     $(".header .tabs>a").on("click", function () {
@@ -2061,7 +2251,17 @@ function initVinoHome() {
         if ($(this).index() === 0) {
             vino.lyt_startTouchEffect();
             vino.soundPlayVolume("SE_TAB_SELECT", 30);
+            $(".header .tabs>a").removeClass("selected");
+            $(this).addClass("selected");
             initLiveTab();
+            return;
+        } else if ($(this).index() === 1) {
+            vino.lyt_startTouchEffect();
+            vino.soundPlayVolume("SE_TAB_SELECT", 30);
+            $(".header .tabs>a").removeClass("selected");
+            $(this).addClass("selected");
+            initGuideTab();
+            return;
         }
         return alert(tvii.getLoc("vino.home.not_available_feature"));
         vino.lyt_startTouchEffect();
@@ -2081,11 +2281,15 @@ function initVinoHome() {
         }
     });
 
+    //Used for pagination on live tab
     var requested = false;
+    //Scroll count for program list
     var programListScroll = 0;
     var programPreviewScroll = 0;
+    //global
     var lineup = tvii.getTVProviderID();
     var lineup_tz = tvii.getTVProviderTZ();
+    //limit of channels at once for live tab
     var limit = 40;
     var offset = 0;
     var total = 0;
@@ -2095,6 +2299,9 @@ function initVinoHome() {
 
     function setUpTitleScrollbar(onSnapCallback, onConfirmCallback) {
         var container = document.querySelector(".program-list .content");
+
+        if (container.getAttribute("data-scroll-init")) return;
+        container.setAttribute("data-scroll-init", "1");
         var thumb = document.querySelector(".program-list .scrollbar .thumb");
 
         var minThumbTop = 22;
@@ -2516,6 +2723,23 @@ function initVinoHome() {
         );
     }
 
+    function setBannerColorByDay() {
+        var offset = tvii.getUtcOffset();
+        var now = new Date();
+        var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+
+        var localTime = new Date(utc + (offset * 1000));
+
+        // get day in that adjusted timezone
+        var day = localTime.getDay(); // 0 = Sun ... 6 = Sat
+
+        var classes = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+        var dayClass = classes[day];
+
+        var $top = $(".top");
+        $top.removeClass("sun mon tue wed thu fri sat");
+        $top.addClass(dayClass);
+    }
 
     function setupClock() {
         var clock = document.querySelector(".bottom .clock");
@@ -2582,7 +2806,6 @@ function initVinoHome() {
             var dayIndex = local.getUTCDay();
             var dayName = days[dayIndex];
 
-            // ✅ locale date format
             if (useDayFirst) {
                 dateSpan.textContent = dayNum + "/" + month; // DD/MM
             } else {
@@ -2595,10 +2818,6 @@ function initVinoHome() {
             var minsText = pad(minutes);
             hourSpan.firstChild.nodeValue = displayHours;
             hourSpan.lastChild.nodeValue = minsText;
-
-            // Toggle blinking colon
-            colonSpan.style.visibility =
-                colonSpan.style.visibility === "hidden" ? "visible" : "hidden";
 
             // Remove previous classes
             daySpan.classList.remove("sat");
@@ -2852,13 +3071,12 @@ function initVinoHome() {
         miiversePrev.find("span").removeClass("placeholder");
         var body = firstPost.body;
         var isSpoiler = firstPost.is_spoiler;
+        var isMyPost = firstPost.pid === tvii.getServerPID();
 
-        if (isSpoiler) {
+        if (isSpoiler && !isMyPost) {
             miiversePrev.find("span").addClass("placeholder");
             body = tvii.getLoc("vino.home.olv.preview_spoiler");
-        }
-
-        if (!body || body.length < 1) {
+        } else if (!body || body.length < 1) {
             miiversePrev.find("span").addClass("placeholder");
             body = tvii.getLoc("vino.home.olv.preview_handwritten");
         }
@@ -2928,13 +3146,12 @@ function initVinoHome() {
                 miiversePrev.find("span").removeClass("placeholder");
                 var body = firstPost.body;
                 var isSpoiler = firstPost.is_spoiler;
+                var isMyPost = firstPost.pid === tvii.getServerPID();
 
-                if (isSpoiler) {
+                if (isSpoiler && !isMyPost) {
                     miiversePrev.find("span").addClass("placeholder");
                     body = tvii.getLoc("vino.home.olv.preview_spoiler");
-                }
-
-                if (!body || body.length < 1) {
+                } else if (!body || body.length < 1) {
                     miiversePrev.find("span").addClass("placeholder");
                     body = tvii.getLoc("vino.home.olv.preview_handwritten");
                 }
@@ -3427,6 +3644,10 @@ function initVinoHome() {
                 var programDuration = details.program.duration;
                 var programDescription = details.program.description;
 
+                det.find(".content").attr("data-prlistid", details.program.listingId)
+                det.find(".content").attr("data-prlist-date", programObject.programDate);
+                det.find(".content").attr("data-chnum", details.channel.number);
+
                 var chlogo = prodet.find(".chlogo");
 
                 if (details.channel.logo) {
@@ -3448,17 +3669,42 @@ function initVinoHome() {
                 var isValidImage =
                     img && img.indexOf("/resource/img/generics/") === -1;
 
+                var isVertical = false;
+
+                // detect orientation from original URL
+                if (img) {
+                    var sizeMatch = img.match(/\/(\d+)x(\d+)\//);
+                    if (sizeMatch) {
+                        var w = parseInt(sizeMatch[1], 10);
+                        var h = parseInt(sizeMatch[2], 10);
+
+                        if (h > w) {
+                            isVertical = true;
+                        }
+                    }
+                }
+
                 if (isValidImage) {
                     img = img.replace(/^.*?(\/image\/)/, "$1");
-                    img = img.replace(/\/\d+x\d+\//, "/400x225/");
+                    if (isVertical) {
+                        img = img.replace(/\/\d+x\d+\//, "/210x315/");
+                    } else {
+                        img = img.replace(/\/\d+x\d+\//, "/400x225/");
+                    }
                 } else if (details.program.showPicture) {
-                    //if show picture exists, set isValidImage to true
                     isValidImage = true;
                     img = "/image/show/400x225/" + details.program.showPicture;
                 }
 
                 if (isValidImage) {
-                    det.find(".program-image>img").attr("src", "/images/cdn/tvp" + img)
+
+                    if (isVertical) {
+                        det.find(".program-image").addClass("vertical");
+                    }
+
+                    det.find(".program-image>img")
+                        .attr("src", "/images/cdn/tvp" + img);
+
                 } else {
                     det.find(".program-image-detail").remove();
                 }
@@ -3685,7 +3931,13 @@ function initVinoHome() {
                         drawLyt();
                     } else if (isGuideTab) {
                         vino.navi_setBaseVisibilityOnKeyEvent(true);
+                        var x = parseInt(grid.find(".guide-container").attr("data-guide-scroll-x"), 10) || 0;
+                        var y = parseInt(grid.find(".guide-container").attr("data-guide-scroll-y"), 10) || 0;
                         grid.show();
+                        grid.find(".guide-container").scrollLeft(x);
+                        grid.find(".guide-container").scrollTop(y);
+                        grid.find(".guide-channel-container").scrollTop(y);
+                        grid.find(".guide-time-container").scrollLeft(x);
                     }
                     disableTopBotHeaders(false);
                 }
@@ -3703,6 +3955,29 @@ function initVinoHome() {
     function setProgramDetailsListener() {
         tvii.setClassHoverToEls($(".next-page, .prev-page"));
 
+        $(".joke-trigger").on("click", function () {
+            // remove existing one if already created (optional)
+            $("#astley-overlay").remove();
+
+            var overlay = $(
+                '<div id="astley-overlay" style="' +
+                'position:absolute;' +
+                'top:0;' +
+                'left:0;' +
+                'width:854px;' +
+                'height:480px;' +
+                'z-index:9999;' +
+                'background:black;' +
+                '">' +
+                '<video width="854" height="480" controls autoplay playsinline>' +
+                '<source src="/media/astley.mp4" type="video/mp4">' +
+                '</video>' +
+                '</div>'
+            );
+
+            $("body").append(overlay);
+            $("#astley-overlay>video")[0].play();
+        });
         var $container = det.find(".content");
         var $prev = det.find(".prev-page");
         var $next = det.find(".next-page");
@@ -3786,10 +4061,6 @@ function initVinoHome() {
         function startHold(direction, e) {
             if (isPrgmPageMoveDisabled || isHeaderButtonBlocked) return;
 
-            if (e.originalEvent && !vino.navi_getRect()) {
-                vino.lyt_startTouchEffect();
-            }
-
             isHolding = true;
             holdStartTime = Date.now();
 
@@ -3821,8 +4092,11 @@ function initVinoHome() {
             startHold("prev", e);
         });
 
-        $prev.on("click", function () {
+        $prev.on("click", function (e) {
             if (isHolding) return;
+            if (e.originalEvent && !vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
             scrollPage("prev", 200);
         });
 
@@ -3833,8 +4107,11 @@ function initVinoHome() {
             startHold("next", e);
         });
 
-        $next.on("click", function () {
+        $next.on("click", function (e) {
             if (isHolding) return;
+            if (e.originalEvent && !vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
             scrollPage("next", 200);
         });
 
@@ -3907,15 +4184,24 @@ function initVinoHome() {
         //Else we assume its program page
 
         var isProgramList = $(".program-list").is(":visible");
+        //Content is shown if everything is success
+        var isProgramDetails = $(".program-fulldetails-page .content").is(":visible");
 
-        var olvProgramId = $(".program-details").attr("data-prlistid");
-        var olvChannelNum = $(".program-details").attr("data-chnum");
-        var olvProgramInfoDate = $(".program-details").attr("data-prlist-date");
-
+        var olvProgramId;
+        var olvChannelNum;
+        var olvProgramInfoDate;
         if (isProgramList) {
+            olvProgramId = $(".program-details").attr("data-prlistid");
+            olvChannelNum = $(".program-details").attr("data-chnum");
+            olvProgramInfoDate = $(".program-details").attr("data-prlist-date");
+
             programListScroll = $(".program-list .content").scrollTop();
             cent.hide();
-        } else {
+        } else if (isProgramDetails) {
+            olvProgramId = $(".program-fulldetails-page .content").attr("data-prlistid");
+            olvChannelNum = $(".program-fulldetails-page .content").attr("data-chnum");
+            olvProgramInfoDate = $(".program-fulldetails-page .content").attr("data-prlist-date");
+
             programPreviewScroll = $(
                 ".program-fulldetails-page .content"
             ).scrollLeft();
@@ -3951,7 +4237,6 @@ function initVinoHome() {
             //Same thing done when requesting posts but we do repeat the action in case
             //This type of thing is done multiple times
             $(".miiverse-post").addClass("disabled");
-            $(".miiverse-refresh").addClass("disabled");
             $(".miiverse-doodle-default").addClass("disabled");
             top.scrollTop(top[0].scrollHeight);
             //$(det).fadeIn(190);
@@ -4085,9 +4370,8 @@ function initVinoHome() {
             head2.find("p").addClass("marquee")
         }
         headOlv.find("span").text("");
-        if (miiverseContainer) {
-            detachMiiverseScrollListener(); // ensure no old listeners
-        }
+        clearInterval(miiverseInterval);
+        miiverseInterval = null;
         miiverseContainer = null;
         $(".miiverse-modal").empty();
     }
@@ -4245,46 +4529,22 @@ function initVinoHome() {
     }
 
     var pid = tvii.getServerPID();
+
     var miiverseIsLoading = false;
-    var miiverseReachedEnd = false;
-    var miiversePostsLimit = 25;
-    var miiverseMaxPosts = 300;
-    var miiverseLoadedCount = 0;
+    var miiversePostsLimit = 50;
+    var miiverseMaxPosts = 350;
 
     var miiverseContainer = null;
 
-    function detachMiiverseScrollListener() {
-        if (miiverseContainer) {
-            miiverseContainer.off("scroll.miiverse");
-        }
-    }
+    var miiverseInterval = null;
 
-    function attachMiiverseScrollListener() {
-        if (miiverseContainer) {
-            miiverseContainer.off("scroll.miiverse").on("scroll.miiverse", onMiiverseScroll);
-        }
-    }
+    function loadMiiversePostsInitial() {
+        if (miiverseIsLoading) return;
 
-    function onMiiverseScroll() {
-        var scrollTop = miiverseContainer.scrollTop();
-        var scrollHeight = miiverseContainer.prop("scrollHeight");
-        var clientHeight = miiverseContainer.innerHeight();
-
-        if (scrollTop + clientHeight >= scrollHeight - 160) {
-            var $lastPost = miiverseContainer.find(".post").last();
-            var lastPostId = $lastPost.data("post-id");
-            console.log("SCROLLED TO END")
-            loadMiiversePosts(lastPostId, false);
-        }
-    }
-
-
-    function loadMiiversePosts(lastPostId, isFirstLoad) {
-        if (miiverseIsLoading || miiverseReachedEnd || miiverseLoadedCount >= miiverseMaxPosts) return;
         disableTopBotHeaders(true);
         miiverseIsLoading = true;
+
         $(".miiverse-post").addClass("disabled");
-        $(".miiverse-refresh").addClass("disabled");
         $(".miiverse-doodle-default").addClass("disabled");
 
         var episodeId = headOlv.attr("data-olv-episodeid");
@@ -4293,98 +4553,242 @@ function initVinoHome() {
 
         tvii.posts.requestPosts(
             miiversePostsLimit,
-            lastPostId || null,
+            null,
             ["PR" + episodeId],
             function (posts) {
                 miiverseIsLoading = false;
-                console.log(miiverseLoadedCount)
 
                 if (!posts || !posts.length) {
-                    miiverseReachedEnd = true;
-                    detachMiiverseScrollListener();
                     vino.loading_setIconAppear(false);
-                    $(".miiverse-post").removeClass("disabled");
-                    $(".miiverse-refresh").removeClass("disabled");
-                    $(".miiverse-doodle-default").removeClass("disabled");
-                    if (isFirstLoad) {
-                        miiverseContainer.append(
-                            $("<div>").addClass("no-posts").html(
-                                tvii.getLoc("vino.home.olv.no_posts"))
-                        );
-                    }
-                    disableTopBotHeaders(false);
+
+                    miiverseContainer.append(
+                        $("<div>").addClass("no-posts").html(
+                            tvii.getLoc("vino.home.olv.no_posts"))
+                    );
+
+                    cleanupUI();
+                    startMiiversePolling();
                     return;
                 }
 
-                miiverseLoadedCount += posts.length;
+                // preview first post
+                setMiiversePostProgPreview(posts[0]);
 
-                if (!lastPostId && posts[0]) {
-                    setMiiversePostProgPreview(posts[0]);
-                }
-
+                var postHtml = $(".miiverse-post-template").html();
                 var frag = document.createDocumentFragment();
+
                 for (var i = 0; i < posts.length; i++) {
-                    var postEl = buildPostElement(posts[i]);
+                    var postEl = buildPostElement(posts[i], postHtml);
                     frag.appendChild(postEl[0]);
                 }
 
                 miiverseContainer.append(frag);
-
-                if (isFirstLoad) {
-                    if (posts.length < miiversePostsLimit) {
-                        miiverseReachedEnd = true;
-                        detachMiiverseScrollListener();
-                    } else {
-                        attachMiiverseScrollListener();
-                    }
-                } else {
-                    if (miiverseLoadedCount >= miiverseMaxPosts || posts.length < miiversePostsLimit) {
-                        miiverseReachedEnd = true;
-                        detachMiiverseScrollListener();
-                    }
-                }
-
-                if (miiverseLoadedCount >= miiverseMaxPosts) {
-                    miiverseReachedEnd = true;
-                    detachMiiverseScrollListener();
-                }
+                setPostsDynaListener();
 
                 vino.loading_setIconAppear(false);
-                $(".miiverse-post").removeClass("disabled");
-                $(".miiverse-refresh").removeClass("disabled");
-                $(".miiverse-doodle-default").removeClass("disabled");
-                disableTopBotHeaders(false);
+
+                cleanupUI();
+                startMiiversePolling();
             },
-            function (err) {
+            function () {
                 miiverseIsLoading = false;
                 vino.loading_setIconAppear(false);
-                $(".miiverse-post").removeClass("disabled");
-                $(".miiverse-refresh").removeClass("disabled");
-                $(".miiverse-doodle-default").removeClass("disabled");
+                cleanupUI();
+                startMiiversePolling();
                 tvii.alert(tvii.getLoc("vino.error.default_error"));
-                disableTopBotHeaders(false);
             }
         );
     }
+
+
+    function checkNewMiiversePosts() {
+        if (miiverseIsLoading) return;
+
+        var episodeId = headOlv.attr("data-olv-episodeid");
+
+        tvii.posts.requestPosts(
+            100,
+            null,
+            ["PR" + episodeId],
+            function (posts) {
+                if (!posts || !posts.length) return;
+
+                var postHtml = $(".miiverse-post-template").html();
+
+                // build map once
+                var postMap = {};
+                var domPosts = miiverseContainer.find(".post");
+
+                domPosts.each(function () {
+                    var $el = $(this);
+                    var id = parseInt($el.data("post-id"), 10);
+                    if (id) postMap[id] = $el;
+                });
+
+                var newestInserted = null;
+
+                for (var i = 0; i < posts.length; i++) {
+                    var post = posts[i];
+                    var postId = post.post_id;
+
+                    var $existing = postMap[postId];
+
+                    if ($existing) {
+                        // update yeahs
+                        var $yeahs = $existing.find(".yeahs");
+                        var newCount = post.empathies ? post.empathies.length : 0;
+                        var current = parseInt($yeahs.text(), 10) || 0;
+
+                        if (current !== newCount) {
+                            $yeahs.text(newCount);
+                        }
+
+                    } else {
+                        // create element
+                        var postEl = buildPostElement(post, postHtml);
+                        var inserted = false;
+
+                        // find correct position
+                        miiverseContainer.find(".post").each(function () {
+                            var $el = $(this);
+                            var existingId = parseInt($el.data("post-id"), 10);
+
+                            if (postId > existingId) {
+                                $el.before(postEl);
+                                inserted = true;
+                                return false; // break
+                            }
+                        });
+
+                        // if no place found → append bottom
+                        if (!inserted) {
+                            miiverseContainer.append(postEl);
+                        }
+
+                        // track newest for preview
+                        if (!newestInserted || postId > newestInserted.post_id) {
+                            newestInserted = post;
+                        }
+                    }
+                }
+
+                if (newestInserted) {
+                    setMiiversePostProgPreview(newestInserted);
+                }
+
+                miiverseContainer.find(".no-posts").remove();
+
+                setPostsDynaListener();
+
+                enforceMiiverseLimit();
+            }
+        );
+    }
+
+    function enforceMiiverseLimit() {
+        var posts = miiverseContainer.find(".post");
+
+        if (posts.length > miiverseMaxPosts) {
+            posts.slice(miiverseMaxPosts).remove();
+        }
+    }
+
+    function startMiiversePolling() {
+        if (miiverseInterval) {
+            clearInterval(miiverseInterval);
+        }
+
+        miiverseInterval = setInterval(function () {
+            checkNewMiiversePosts();
+        }, 10000);
+    }
+
+    function cleanupUI() {
+        $(".miiverse-post").removeClass("disabled");
+        $(".miiverse-doodle-default").removeClass("disabled");
+        disableTopBotHeaders(false);
+    }
+
 
     function requestPostsMiiversePage() {
         $(".miiverse-post").addClass("disabled");
         $(".miiverse-modal .post-container").empty();
 
         miiverseIsLoading = false;
-        miiverseReachedEnd = false;
-        miiverseLoadedCount = 0;
 
-        //After emptying the posts
+        if (miiverseInterval) {
+            clearInterval(miiverseInterval);
+            miiverseInterval = null;
+        }
+
         vino.requestGarbageCollect();
 
-        loadMiiversePosts(null, true);
+        loadMiiversePostsInitial();
+    }
+
+    function openFullScreenshotModal(screenshot, miiPid) {
+        disableTopBotHeaders(true);
+
+        miiverseContainer.data("makeScrollContainer").stop();
+        miivContScr = miiverseContainer.scrollTop();
+        miiverseContainer.hide();
+        var html = $(".miiverse-image-view-template").html();
+        $(".miiverse-image-view").html(html).show();
+        tvii.templates.setUpLocHTML();
+        tvii.setClassHoverToEls($(".back-modal"));
+        setScreenshotViewListener(screenshot, miiPid);
+    }
+
+    function setScreenshotViewListener(screenshot, pid) {
+        var scrDetModal = $(".miiverse-image-view");
+
+        tvii.sendXHR("GET", "/api/v1/socials/getUserData/" + pid, function (data) {
+            var user_data = JSON.parse(data);
+
+            scrDetModal.find(".image-mii").attr("src", "/api/v1/miis.png?width=120&texResolution=96&type=face_only&expression=normal&data="
+                + encodeURIComponent(user_data.mii_data));
+
+            scrDetModal.find(".image-mii").on("mousedown", function () {
+                vino.soundPlayVolume("SE_WORD_MII_1", 30)
+            });
+
+            scrDetModal.find(".image-element").attr("src", "/images/cdn/" + screenshot)
+
+            scrDetModal.find(".image-name-container").text(tvii.getLoc("vino.home.olv.screenshot.modal.title", user_data.mii_name));
+
+            disableTopBotHeaders(false);
+        }, function () {
+            disableTopBotHeaders(false);
+        });
+
+        //Back button on image modal
+        scrDetModal.find(".back-modal").on("click", function (e) {
+            if (isHeaderButtonBlocked) return;
+            if ($(this).hasClass("disabled")) return;
+
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+                vino.soundPlayVolume("SE_CLOSE_TOUCH_OFF", 30);
+            } else {
+                vino.soundPlayVolume("SE_CLOSE", 30);
+            }
+
+            scrDetModal.empty();
+            scrDetModal.hide();
+            scrDetModal = null;
+            //after disposing detail modal
+            vino.requestGarbageCollect();
+
+            miiverseContainer.show();
+            miiverseContainer.scrollTop(miivContScr);
+        });
     }
 
     function openMiiUserDetailScreen(pid) {
         disableTopBotHeaders(true);
 
-        detachMiiverseScrollListener();
         miiverseContainer.data("makeScrollContainer").stop();
         miivContScr = miiverseContainer.scrollTop();
         miiverseContainer.hide();
@@ -4421,7 +4825,6 @@ function initVinoHome() {
 
                 // revert after 0.3s
                 setTimeout(function () {
-                    vino.soundPlayVolume("SE_WORD_MII_3", 30)
                     miiDetModal.find(".mii").attr("src", img1.attr("src"));
                 }, 300);
 
@@ -4522,14 +4925,163 @@ function initVinoHome() {
 
             miiverseContainer.show();
             miiverseContainer.scrollTop(miivContScr);
-            attachMiiverseScrollListener();
         });
     }
 
-    function buildPostElement(post) {
+    function setPostsDynaListener() {
+
+        $(".post .mii")
+            .off(".postDyn")
+            .on("mousedown.postDyn", function () {
+                vino.soundPlayVolume("SE_WORD_MII", 30);
+            })
+            .on("click.postDyn", function () {
+                var t = $(this);
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+                openMiiUserDetailScreen(t.attr("data-user-pid"));
+            });
+
+        $(".post .screenshot")
+            .off(".postDyn")
+            .on("click.postDyn", function () {
+                var t = $(this);
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+                vino.soundPlayVolume("SE_POPUP", 30);
+                openFullScreenshotModal(t.attr("data-screenshot"), t.parent().parent().parent().find(".mii").attr("data-user-pid"));
+            });
+
+        $(".post button.spoiler")
+            .off(".postDyn")
+            .on("click.postDyn", function () {
+                var t = $(this);
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+                vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+                t.parent().removeClass("hidden");
+                t.remove();
+            });
+
+        $(".post .yeah:not(:disabled):not(.self)")
+            .off(".postDyn")
+            .on("mousedown.postDyn", function () {
+                if ($(this).hasClass("disabled")) return;
+                vino.soundPlayVolume("SE_COMMON_TOUCH_ON", 30);
+                $(this).addClass("hover");
+            })
+            .on("mouseup.postDyn mouseout.postDyn", function () {
+                if ($(this).hasClass("disabled")) return;
+                $(this).removeClass("hover");
+            })
+            .on("click.postDyn", function () {
+
+                var but = $(this);
+                var yeahCount = but.parent().find("span.yeahs");
+
+                if (but.hasClass("disabled")) return;
+                but.addClass("disabled");
+
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+
+                var feeling = parseInt(but.attr("data-feeling"), 10);
+                var id = but.closest(".post").attr("data-post-id");
+
+                var yeahText;
+                var unyeahText;
+
+                switch (feeling) {
+                    case 0:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.remove");
+                        break;
+                    case 1:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.happy");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.happy.remove");
+                        break;
+                    case 2:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.like");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.like.remove");
+                        break;
+                    case 3:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.surprised");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.surprised.remove");
+                        break;
+                    case 4:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.frustrated");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.frustrated.remove");
+                        break;
+                    case 5:
+                        yeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.puzzled");
+                        unyeahText = tvii.getLoc("vino.home.olv.crosspost.post.empathy.puzzled.remove");
+                        break;
+                }
+
+                if (but.hasClass("yeahed")) {
+
+                    vino.soundPlayVolume("SE_WAVE_CANCEL_TOUCH_OFF", 30);
+
+                    tvii.posts.addEmpathyToPost(true, id, function (success) {
+                        if (success) {
+                            var current = parseInt(yeahCount.text(), 10) || 0;
+                            yeahCount.text(current - 1);
+                            but.text(yeahText);
+                            but.removeClass("yeahed");
+                            yeahCount.removeClass("added");
+                        }
+                        but.removeClass("disabled");
+                    });
+
+                    return;
+                }
+
+                vino.soundPlayVolume("SE_FAVORITE_TOUCH_OFF", 30);
+
+                tvii.posts.addEmpathyToPost(false, id, function (success) {
+                    if (success) {
+                        var current = parseInt(yeahCount.text(), 10) || 0;
+                        yeahCount.text(current + 1);
+                        but.text(unyeahText);
+                        but.addClass("yeahed");
+                        yeahCount.addClass("added");
+                    }
+                    but.removeClass("disabled");
+                });
+
+            });
+
+        $(".post .doodle")
+            .off(".postDyn")
+            .on("mousedown.postDyn", function () {
+                vino.soundPlayVolume("SE_COMMON_TOUCH_ON", 30);
+                $(this).addClass("hover");
+            })
+            .on("mouseup.postDyn mouseout.postDyn", function () {
+                $(this).removeClass("hover");
+            })
+            .on("click.postDyn", function () {
+
+                var t = $(this);
+                var scr = t.parent().parent().find(".screenshot");
+
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+
+                vino.soundPlayVolume("SE_WAVE_TOGGLE_CHECK_TOUCH_OFF", 30);
+                openDoodleModal(scr.attr("data-screenshot"));
+
+            });
+    }
+
+    function buildPostElement(post, template) {
         var miiData = post.mii_data;
         var postId = post.post_id;
-        var miitooAmount = 0;
         var feeling = post.feeling_id;
         var feelingQ = getFeelingQueryFromPostXml(feeling);
         var postText = post.body;
@@ -4540,100 +5092,39 @@ function initVinoHome() {
         var empathies = post.empathies || [];
         var isSpoiler = post.is_spoiler;
 
-        var content = null;
+        var postEl = $(template);
 
         if (postText && postText.length) {
-            content = $("<p>");
-            content.text(postText);
+            postEl.find(".content .memo").remove();
+            postEl.find(".content p").text(postText);
         } else if (painting && painting.length) {
-            content = new Image();
-            content.classList.add("memo");
-            content.src = "/images/cdn/" + painting;
+            postEl.find(".content p").remove();
+            postEl.find(".content .memo").attr("src", "/images/cdn/" + painting)
         }
 
-        var $postEl = $("<div>")
-            .addClass("post")
-            .attr("data-post-id", postId);
-
-        var miiImg = new Image();
-        miiImg.src =
+        postEl.attr("data-post-id", postId);
+        postEl.find(".mii>img").attr("src",
             "/api/v1/miis.png?width=65&expression=" +
             feelingQ +
             "&data=" +
             encodeURIComponent(miiData) +
-            "&type=face";
-        var miiEl = (function () {
-            return $("<div>")
-                .addClass("mii")
-                .append(miiImg)
-                .attr("data-user-pid", post.pid)
-                .attr("tabindex", 0)
-                .attr("navi_target", "")
-                .attr("navi_no_reset", "")
-                .on("mousedown", function () {
-                    vino.soundPlayVolume("SE_WORD_MII", 30);
-                })
-                .on("click", function () {
-                    if (!vino.navi_getRect()) {
-                        vino.lyt_startTouchEffect();
-                    }
-                    openMiiUserDetailScreen(miiEl.attr("data-user-pid"));
-                });
-        })();
+            "&type=face");
+        postEl.find(".mii").attr("data-user-pid", post.pid);
 
-        var username = $("<span>")
-            .addClass("username")
-            .text(screenName);
+        postEl.find(".username").text(screenName);
 
-        if (screenName === "Project Rosé Staff") {
-            username.css("background", "#f05b00");
-        }
+        postEl.find(".datetime").text(miiverseDateFormat(postDate));
 
-        var date = $("<span>")
-            .addClass("date")
-            .text(miiverseDateFormat(postDate));
-
-        var postCont = $("<div>").addClass("post-content");
-
-        var postRCont = $("<div>");
-        postRCont.addClass("content");
-        if (isSpoiler) {
-            postRCont.addClass("hidden");
-        }
-
-        var ss = new Image();
-        ss.src = postScreenshot ? "/images/cdn/" + postScreenshot + "?width=351" : "/img/noimg.png";
-
-        var ssDiv = $("<div>");
-        ssDiv.append(ss).addClass("screenshot").attr("tabindex", "0").attr("navi_target", "").attr("data-screenshot", postScreenshot ? postScreenshot : "/img/noimg.ong")
-
-        if (postScreenshot && postText) {
-            postRCont.append(content);
-            postRCont.append(ssDiv);
-        } else if (postScreenshot && painting) {
-            postRCont.append(ssDiv);
-            postRCont.append(content);
+        if (postScreenshot) {
+            postEl.find(".doodle").text(tvii.getLoc("vino.home.olv.crosspost.post.doodlebut"));
+            postEl.find(".screenshot>img").attr("src", "/images/cdn/" + postScreenshot + "?width=351")
+            postEl.find(".screenshot").attr("data-screenshot", postScreenshot)
         } else {
-            postRCont.append(content);
+            postEl.find(".doodle").remove();
+            postEl.find(".screenshot").remove();
         }
 
-        var postHeader = $("<header>")
-        postHeader.append(username);
-        postHeader.append(date);
-        postCont.append(postHeader);
-
-        postCont.append(postRCont);
-
-        var postMeta = $("<div>").addClass("post-meta");
-        var postHref = $("<a>").addClass("post-href").attr("href", "javascript:void(0)").attr("navi_target", "");
-
-        for (var a = 0; a < empathies.length; a++) {
-            miitooAmount++;
-        }
-
-        var yeahCount = $("<span>")
-            .addClass("yeahs")
-            .text(miitooAmount);
+        postEl.find("span.yeahs").text(empathies.length);
 
         var hasYeahed = false;
         var isMyPost = false;
@@ -4649,23 +5140,17 @@ function initVinoHome() {
             }
         }
 
-        var spoilerBut = $("<button>")
-            .addClass("spoiler")
-            .attr("navi_target", "")
-            .attr("tabindex", 0)
-            .text(tvii.getLoc("vino.home.olv.crosspost.post.view_spoiler"));
-
         if (isSpoiler) {
-            (function ($spoilerbut, $postRCont) {
-                $spoilerbut.on("click", function () {
-                    if (!vino.navi_getRect()) {
-                        vino.lyt_startTouchEffect();
-                    }
-                    vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
-                    $postRCont.removeClass("hidden");
-                    $spoilerbut.remove();
-                });
-            })(spoilerBut, postRCont);
+            if (!isMyPost) {
+                postEl.find(".content").addClass("hidden");
+                postEl.find("button.spoiler").text((tvii.getLoc("vino.home.olv.crosspost.post.view_spoiler")))
+            } else {
+                postEl.find("button.spoiler").remove();
+            }
+            postEl.find("span.spoilers").text((tvii.getLoc("vino.home.olv.crosspost.post.spoiler")))
+        } else {
+            postEl.find("span.spoilers").remove();
+            postEl.find("button.spoiler").remove();
         }
 
         var yeahText;
@@ -4700,132 +5185,26 @@ function initVinoHome() {
                 break;
         }
 
-        var empathyAct = $("<button>")
-            .addClass("yeah")
-            .attr("navi_target", "")
-            .attr("navi_no_reset", "")
-            .attr("tabindex", 0)
-            .text(yeahText);
+        postEl.find(".yeah").attr("data-feeling", feeling);
 
         if (isMyPost) {
-            empathyAct.addClass("self");
-            empathyAct.addClass("disabled");
+            postEl.find(".yeah").text(yeahText);
+            postEl.find(".yeah").addClass("self");
+            postEl.find(".yeah").addClass("disabled");
         } else if (hasYeahed) {
-            empathyAct.text(unyeahText);
-            empathyAct.addClass("yeahed");
-            yeahCount.addClass("added");
+            postEl.find(".yeah").text(unyeahText);
+            postEl.find(".yeah").addClass("yeahed");
+            postEl.find("span.yeahs").addClass("added");
+        } else {
+            postEl.find(".yeah").text(yeahText);
         }
 
-        if (!isMyPost) {
-            (function (id, $yeahCount, $empathyAct) {
-                empathyAct.on("mousedown", function () {
-                    if ($(this).hasClass("disabled")) return;
-                    vino.soundPlayVolume("SE_COMMON_TOUCH_ON", 30);
-                    $(this).addClass("hover");
-                });
-
-                empathyAct.on("mouseup mouseout", function () {
-                    $(this).removeClass("hover");
-                });
-
-                empathyAct.on("click", function () {
-                    var but = $(this);
-                    if (but.hasClass("disabled")) return;
-                    but.addClass("disabled");
-                    if (!vino.navi_getRect()) {
-                        vino.lyt_startTouchEffect();
-                    }
-
-                    if (but.hasClass("yeahed")) {
-                        vino.soundPlayVolume("SE_WAVE_CANCEL_TOUCH_OFF", 30);
-                        tvii.posts.addEmpathyToPost(
-                            true,
-                            id,
-                            function (success) {
-                                if (success) {
-                                    var current =
-                                        parseInt($yeahCount.text(), 10) || 0;
-                                    $yeahCount.text(current - 1);
-                                    $empathyAct.text(yeahText);
-                                    $empathyAct.removeClass("yeahed");
-                                    $yeahCount.removeClass("added");
-                                }
-                                but.removeClass("disabled");
-                            }
-                        );
-                        return;
-                    }
-
-                    vino.soundPlayVolume("SE_FAVORITE_TOUCH_OFF", 30);
-
-                    tvii.posts.addEmpathyToPost(
-                        false,
-                        id,
-                        function (success) {
-                            if (success) {
-                                var current =
-                                    parseInt($yeahCount.text(), 10) || 0;
-                                $yeahCount.text(current + 1);
-                                $empathyAct.text(unyeahText);
-                                $empathyAct.addClass("yeahed");
-                                $yeahCount.addClass("added");
-                            }
-                            but.removeClass("disabled");
-                        }
-                    );
-                });
-            })(postId, yeahCount, empathyAct);
-        }
-
-        var doodleButton = $("<button>")
-            .addClass("doodle")
-            .attr("tabindex", 0)
-            .attr("navi_target", "")
-            .text(tvii.getLoc("vino.home.olv.crosspost.post.doodlebut"));
-
-        (function (screenshot) {
-            doodleButton.on("mousedown", function () {
-                vino.soundPlayVolume("SE_COMMON_TOUCH_ON", 30)
-                $(this).addClass("hover");
-            })
-
-            doodleButton.on("mouseup mouseout", function () {
-                $(this).removeClass("hover");
-            })
-
-            doodleButton.on("click", function () {
-                if (!vino.navi_getRect()) {
-                    vino.lyt_startTouchEffect();
-                }
-                vino.soundPlayVolume("SE_WAVE_TOGGLE_CHECK_TOUCH_OFF", 30);
-                openDoodleModal(screenshot.attr("data-screenshot"));
-            });
-        })(ssDiv);
-
-        if (isSpoiler) {
-            postRCont.append(spoilerBut);
-        }
-
-        postMeta.append(empathyAct);
-        if (postScreenshot && postScreenshot.length) {
-            postMeta.append(doodleButton);
-        }
-        postMeta.append(yeahCount);
-
-        postCont.append(postMeta);
-        postCont.append(postHref);
-
-        $postEl.append(miiEl);
-
-        $postEl.append(postCont);
-
-        return $postEl;
+        return postEl;
     }
 
     var miivContScr = 0;
 
     function openDoodleModal(screenshot) {
-        detachMiiverseScrollListener();
         //temporal
         if (headOlv.find("p").attr("data-has-marquee")) {
             headOlv.find("p").removeClass("marquee")
@@ -4874,7 +5253,6 @@ function initVinoHome() {
             headOlv.find("p").addClass("marquee")
         }
         miiverseContainer.scrollTop(miivContScr);
-        attachMiiverseScrollListener();
     }
 
     $(".miiverse-button").on("click", function (e) {
@@ -5077,9 +5455,24 @@ function initVinoHome() {
                 if (isSuccess) {
                     //Requests Posts Miiverse Page will handle unlocking
                     closeDoodleModal();
-                    setTimeout(function () {
-                        requestPostsMiiversePage();
-                    }, 0);
+
+                    var postMine = JSON.parse(apiResponse).post;
+                    var latPost = miiverseContainer.find(".post").first();
+                    var latPostId = latPost.length
+                        ? parseInt(latPost.data("post-id"), 10) || 0
+                        : 0;
+
+                    if (latPostId != postMine.post_id) {
+                        var postHtml = $(".miiverse-post-template").html();
+                        setMiiversePostProgPreview(postMine)
+                        var postEl = buildPostElement(postMine, postHtml);
+
+                        miiverseContainer.find(".no-posts").remove();
+                        miiverseContainer.prepend(postEl);
+                        setPostsDynaListener();
+                    }
+
+                    disableTopBotHeaders(false);
                     but.removeClass("disabled");
                 } else {
                     tvii.alert(tvii.getLoc("vino.error.default_error"));
@@ -5297,18 +5690,17 @@ function initVinoHome() {
                 vino.soundPlayVolume("SE_WAVE_TOGGLE_CHECK", 30);
 
                 if ($(this).val() === "body") {
+                    //Text is inmediately class put
+                    $(".textarea-menu li label").removeClass("checked");
+                    $(this).parent().addClass("checked");
                     $(".textarea-memo").hide();
                     $(".textarea-text").show();
                     $(".textarea-text-input").focus();
                     vino.wakeKeyboard();
                 } else {
-                    $(".textarea-text").hide();
-                    $(".textarea-memo").show();
+                    //Class is removed and put when drawing is finished.
                     memoStart();
                 }
-
-                $(".textarea-menu li label").removeClass("checked");
-                $(this).parent().addClass("checked");
             });
 
         miiverseModal.find(".spoiler-button input").on("click", function (e) {
@@ -5335,14 +5727,14 @@ function initVinoHome() {
             }
         });
 
+        $(".textarea-memo-preview").on("click", function () {
+            memoStart();
+        });
+
         function memoStart() {
             setTimeout(checkMemoResult, 100);
             vino.memo_open(false);
         }
-
-        $(".textarea-memo-preview").on("click", function () {
-            memoStart();
-        });
 
         function checkMemoResult() {
             if (!vino.memo_isFinish()) {
@@ -5354,6 +5746,13 @@ function initVinoHome() {
                     miiverseModal
                         .find(".textarea-memo-preview")
                         .css("background-image", bgImage);
+                }
+
+                if (!$(".textarea-memo").is(":visible")) {
+                    $(".textarea-text").hide();
+                    $(".textarea-memo").show();
+                    $(".textarea-menu li label").removeClass("checked");
+                    $(".textarea-menu-memo").addClass("checked");
                 }
             }
         }
@@ -5391,7 +5790,6 @@ function initVinoHome() {
 
             miiverseContainer.show();
             miiverseContainer.scrollTop(miivContScr);
-            attachMiiverseScrollListener();
         });
 
         function lockPostModal(lock) {
@@ -5494,8 +5892,6 @@ function initVinoHome() {
 
             function onPostSendFinishAlt(isSuccess, apiResponse) {
                 if (isSuccess) {
-                    //Request posts will handle enabling header
-                    disableTopBotHeaders(true);
                     //Reset post modal
                     vino.memo_reset();
                     lockPostModal(false);
@@ -5507,7 +5903,23 @@ function initVinoHome() {
                     vino.requestGarbageCollect();
 
                     miiverseContainer.show();
-                    requestPostsMiiversePage();
+
+                    var postMine = JSON.parse(apiResponse).post;
+                    var latPost = miiverseContainer.find(".post").first();
+                    var latPostId = latPost.length
+                        ? parseInt(latPost.data("post-id"), 10) || 0
+                        : 0;
+
+                    if (latPostId != postMine.post_id) {
+                        var postHtml = $(".miiverse-post-template").html();
+                        setMiiversePostProgPreview(postMine)
+                        var postEl = buildPostElement(postMine, postHtml);
+
+                        miiverseContainer.find(".no-posts").remove();
+                        miiverseContainer.prepend(postEl);
+                        setPostsDynaListener();
+                    }
+
                 } else {
                     tvii.alert(tvii.getLoc("vino.error.default_error"));
                     lockPostModal(false);
@@ -5521,7 +5933,6 @@ function initVinoHome() {
     $(".miiverse-post").on("click", function (e) {
         if (isHeaderButtonBlocked) return;
         if ($(this).hasClass("disabled")) return;
-        detachMiiverseScrollListener();
         miiverseContainer.data("makeScrollContainer").stop();
         miivContScr = miiverseContainer.scrollTop();
         miiverseContainer.hide();
@@ -5563,22 +5974,6 @@ function initVinoHome() {
             miiverseContainer.scrollTop(0);
         })
 
-        $(".miiverse-button-menu a.miiverse-refresh").on("click", function (e) {
-            if (isHeaderButtonBlocked) return;
-            if ($(this).hasClass("disabled")) return;
-
-            if (e.originalEvent) {
-                if (!vino.navi_getRect()) {
-                    vino.lyt_startTouchEffect();
-                }
-            }
-            vino.soundPlayVolume("SE_WAVE_BALLOON_OPEN", 30);
-
-            miiverseContainer.data("makeScrollContainer").stop();
-            miiverseContainer.scrollTop(0);
-            requestPostsMiiversePage();
-        })
-
         $(".miiverse-button-menu a.miiverse-doodle-default").on("click", function (e) {
             if (isHeaderButtonBlocked) return;
             if ($(this).hasClass("disabled")) return;
@@ -5601,13 +5996,20 @@ function initVinoHome() {
         disableTopBotHeaders(true);
         tvii.pushStateWithQuery("scene", "livetab", false);
         showMiiversePostPreview(false);
-        $(".guide-view").hide();
+        //guide
+        grid.empty();
+        grid.hide();
+
+        //clean guide button listener
+        $(".header .tabs>a:nth-child(2)").text(tvii.getLoc("vino.home.header.guide"));
+        $(".guide-button .guide-page-select").empty();
+        $(".guide-button .guide-page").off("mousedown");
+        $(".guide-button .guide-page span").text("");
+        $(".guide-button .guide-time").off("click");
+        $(".guide-page select").off("change");
+
         $(".footer .bottom").removeClass("guideopt");
         $(".program-central").show();
-
-        $(".guide-time-container").empty();
-        $(".guide-channel-container").empty();
-
         $(".program-central").html($("#template-live-tab").html());
         $(".program-list .content").hide();
 
@@ -5657,20 +6059,725 @@ function initVinoHome() {
         );
     }
 
+    function handleGuideDropdown(total, limit, offset, hourValue, dayIndex) {
+
+        var select = $(".guide-button .guide-page-select");
+
+        select.empty();
+
+        if (!limit || limit <= 0) return;
+
+        var pages = Math.ceil(total / limit);
+
+        var hourAttr = (hourValue === null || typeof hourValue === "undefined") ? "null" : hourValue;
+        var dayAttr = (dayIndex === null || typeof dayIndex === "undefined") ? "null" : dayIndex;
+
+        // ---------- CALCULATE SELECTED PAGE ----------
+        var selectedPage = 0;
+
+        if (offset && offset > 0) {
+            selectedPage = Math.floor(offset / limit);
+        }
+
+        // ---------- BUILD OPTIONS ----------
+        for (var i = 0; i < pages; i++) {
+
+            var option = $("<option>")
+                .text(tvii.getLoc("vino.home.guide.change_page_button", i + 1))
+                .attr("value", i + 1)
+                .attr("data-hour-value", hourAttr)
+                .attr("data-day-index", dayAttr);
+
+            if (i === selectedPage) {
+                option.prop("selected", true);
+            }
+
+            select.append(option);
+        }
+        var selected = select.find("option:selected");
+        select.parent().find("span").text(selected.text());
+    }
+
+    function handleGuideData(guide, minutes, guideChanneLimit, time, day) {
+
+        function parseGuideDate(str) {
+            str = str.replace("T", " ");
+            var p = str.split(" ");
+            var d = p[0].split("-");
+            var t = p[1].split(":");
+
+            return new Date(
+                parseInt(d[0], 10),
+                parseInt(d[1], 10) - 1,
+                parseInt(d[2], 10),
+                parseInt(t[0], 10),
+                parseInt(t[1], 10),
+                parseInt(t[2] || 0, 10)
+            );
+        }
+
+        var halfHourWidth = 250;
+        var container = $(".guide-view");
+
+        var timeContainer = container.find(".guide-time-container");
+        var channelContainer = container.find(".guide-channel-container");
+        var guideContainer = container.find(".guide-container");
+
+        // ---------- STORE SELECTED TIME/DAY ----------
+        var selectedTime = (time === null || typeof time === "undefined") ? "now" : time;
+        var selectedDay = (day === null || typeof day === "undefined") ? 0 : day;
+
+        guideContainer
+            .attr("data-guide-selected-time", selectedTime)
+            .attr("data-guide-selected-day", selectedDay);
+
+        timeContainer.find("a:not(.label)").remove();
+        channelContainer.empty();
+        guideContainer.empty();
+
+        // ---------- GUIDE START TIME ----------
+        var startDate = parseGuideDate(guide.start);
+
+        // ---------- SET LABEL DATE ----------
+        function pad(n) {
+            return n < 10 ? "0" + n : "" + n;
+        }
+
+        var month = pad(startDate.getMonth() + 1);
+        var dayNum = pad(startDate.getDate());
+
+        var lang = tvii.getLang();
+        var dateText;
+
+        if (lang === "en") {
+            dateText = month + "/" + dayNum;
+        } else {
+            dateText = dayNum + "/" + month;
+        }
+
+        $(".header .tabs>a:nth-child(2)").text(
+            tvii.getLoc("vino.home.header.guide_time", dateText)
+        );
+
+        timeContainer.find("a.label").text(
+            tvii.getLoc("vino.home.guide.time_label")
+        );
+
+        // ---------- BUILD TIME HEADER ----------
+        var steps = minutes / 30;
+        var maxWidth = steps * halfHourWidth;
+
+        var t = new Date(startDate.getTime());
+
+        for (var i = 0; i < steps; i++) {
+
+            var hour = t.getHours();
+            var minute = t.getMinutes();
+
+            var ampm = hour >= 12 ? "PM" : "AM";
+            var displayHour = hour % 12;
+            if (displayHour === 0) displayHour = 12;
+
+            var minuteStr = minute < 10 ? "0" + minute : minute;
+
+            timeContainer.append(
+                $("<a>").text(displayHour + ":" + minuteStr + ampm)
+            );
+
+            t.setMinutes(t.getMinutes() + 30);
+        }
+
+        // ---------- CHANNELS ----------
+        var maxChannels = Math.min(guideChanneLimit, guide.data.length);
+
+        for (var c = 0; c < maxChannels; c++) {
+
+            var ch = guide.data[c].channel;
+            var programs = guide.data[c].programs;
+
+            channelContainer.append(
+                $("<a>")
+                    .append($("<span>").text(ch.callsign))
+                    .append($("<span>").text(ch.number))
+            );
+
+            var row = $("<div>");
+            guideContainer.append(row);
+
+            var rowWidth = 0;
+            var lastEnd = startDate;
+
+            // ---------- PROGRAMS ----------
+            for (var p = 0; p < programs.length; p++) {
+
+                var prog = programs[p];
+
+                var start = parseGuideDate(prog.start);
+                var end = parseGuideDate(prog.end);
+
+                // ---------- GAP HANDLING ----------
+                if (start > lastEnd) {
+
+                    var gapMinutes = (start - lastEnd) / 60000;
+                    var gapWidth = Math.round((gapMinutes / 30) * halfHourWidth);
+
+                    if (rowWidth + gapWidth > maxWidth) {
+                        gapWidth = maxWidth - rowWidth;
+                    }
+
+                    if (gapWidth > 0) {
+                        row.append(
+                            $("<a>").css("width", gapWidth + "px")
+                        );
+                        rowWidth += gapWidth;
+                    }
+                }
+
+                var durationMinutes = (end - start) / 60000;
+
+                if (start < startDate) {
+                    var elapsed = (startDate - start) / 60000;
+                    durationMinutes -= elapsed;
+                }
+
+                if (durationMinutes <= 0) {
+                    lastEnd = end;
+                    continue;
+                }
+
+                var width = Math.round((durationMinutes / 30) * halfHourWidth);
+
+                if (rowWidth + width > maxWidth) {
+                    width = maxWidth - rowWidth;
+                }
+
+                if (width <= 0) break;
+
+                var a = $("<a>")
+                    .attr("href", "javascript:void(0)")
+                    .attr("navi_target", "")
+                    .attr("data-program-episode-id", prog.showId)
+                    .attr("data-program-listing-id", prog.listingId)
+                    .attr("data-program-listing-date", prog.scheduleDate)
+                    .attr("data-program-listing-chnum", ch.number)
+                    .css("width", width + "px");
+
+                var title = $("<span>").text(prog.showName);
+                var subtitle = $("<span>");
+
+                if (prog.isLive) {
+                    subtitle.append('<span class="tag tagl">Live</span> ');
+                } else if (prog.isNew) {
+                    subtitle.append('<span class="tag tagn">New</span> ');
+                }
+
+                if (prog.isCC) {
+                    subtitle.append('<span class="cc">CC</span> ');
+                }
+
+                if (prog.episodeTitle) {
+                    subtitle
+                        .addClass("ep")
+                        .append(document.createTextNode(prog.episodeTitle));
+                } else if (prog.description) {
+                    subtitle.append(document.createTextNode(prog.description));
+                }
+
+                a.append(title);
+                a.append(subtitle);
+
+                row.append(a);
+
+                rowWidth += width;
+                lastEnd = end;
+
+                if (rowWidth >= maxWidth) break;
+            }
+
+            // ---------- END GAP ----------
+            if (rowWidth < maxWidth) {
+                row.append(
+                    $("<div>").css("width", (maxWidth - rowWidth) + "px")
+                );
+            }
+        }
+
+        tvii.setActualClickListener($(".guide-container"), function (evt) {
+
+            var target = $(evt.target).closest(".guide-container a[href]");
+            if (!target.length) return;
+
+            target.focus();
+
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+
+            vino.navi_setToFocused(true);
+            vino.navi_decide();
+
+            vino.soundPlayVolume("SE_APPEAR_DETAIL", 30);
+
+            setupProgramPageWithAnimFromGuide(
+                target.attr("data-program-listing-id"),
+                target.attr("data-program-listing-date"),
+                target.attr("data-program-listing-chnum")
+            );
+
+            requestMiiversePostProgPreview(
+                target.attr("data-program-episode-id")
+            );
+        });
+    }
+
+
+    function openGuideSettingsModal() {
+
+        var guideView = $(".guide-view");
+        var guideContainer = guideView.find(".guide-container");
+
+        // ---------- STORE SCROLL ----------
+        guideContainer.data("makeScrollContainer").stop();
+        var scrollX = guideContainer.scrollLeft();
+        var scrollY = guideContainer.scrollTop();
+
+        guideContainer
+            .attr("data-guide-scroll-x", scrollX)
+            .attr("data-guide-scroll-y", scrollY);
+
+        guideView.hide();
+
+        // ---------- BUILD MODAL ----------
+        var html = $(".guide-time-settings-template").html();
+        var modal = $(".guide-time-settings");
+
+        modal.html(html).show();
+
+        modal.find(".title").text(tvii.getLoc("vino.home.guide.time_settings.label"));
+        modal.find(".btn-1").text(tvii.getLoc("vino.cancel-withb"));
+        modal.find(".btn-2").text(tvii.getLoc("vino.home.guide.time_settings.view_live"));
+
+        var slotContainer = modal.find(".time-slots");
+        var baseSlot = slotContainer.find(".slot").first().clone();
+
+        slotContainer.empty();
+
+        // ---------- TIMEZONE DATE ----------
+        var offsetSeconds = tvii.getUtcOffset();
+        var offsetMillis = offsetSeconds * 1000;
+
+        var localMillis = Date.now() + offsetMillis;
+        var now = new Date(localMillis);
+
+        var currentMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+
+        var dayNames = [
+            "vino.days.sun_short",
+            "vino.days.mon_short",
+            "vino.days.tue_short",
+            "vino.days.wed_short",
+            "vino.days.thu_short",
+            "vino.days.fri_short",
+            "vino.days.sat_short"
+        ];
+
+        function pad(n) {
+            return n < 10 ? "0" + n : "" + n;
+        }
+
+        // ---------- BUILD 7 DAYS ----------
+        for (var d = 0; d < 7; d++) {
+
+            var slot = baseSlot.clone();
+
+            var date = new Date(now.getTime());
+            date.setUTCDate(date.getUTCDate() + d);
+
+            var day = pad(date.getUTCDate());
+            var dayIndex = date.getUTCDay();
+            var dayName = tvii.getLoc(dayNames[dayIndex]);
+
+            var label = "";
+
+            if (d === 0) label = tvii.getLoc("vino.home.guide.time_settings.today");
+            if (d === 1) label = tvii.getLoc("vino.home.guide.time_settings.tomorrow");
+
+            if (label) {
+                slot.find("p").text(label);
+            } else {
+                slot.find("p").remove();
+            }
+
+            slot.find("b").text(day);
+
+            var span = slot.find("span");
+            span.text(dayName);
+
+            if (dayIndex === 0) span.addClass("sun");
+            if (dayIndex === 6) span.addClass("sat");
+
+            var hours = [0, 6, 12, 18];
+            var labels = [
+                "vino.home.guide.time_settings.midnight_short",
+                "vino.home.guide.time_settings.morning_short",
+                "vino.home.guide.time_settings.afternoon_short",
+                "vino.home.guide.time_settings.evening_short"
+            ];
+
+            var buttons = slot.find("a");
+
+            for (var i = 0; i < 4; i++) {
+
+                var btn = buttons.eq(i);
+
+                btn.text(tvii.getLoc(labels[i]));
+                btn.attr("data-hour", hours[i]);
+                btn.attr("data-day", d);
+
+                // ---------- DISABLE PAST SLOTS ----------
+                var disabled = false;
+
+                if (d === 0) {
+
+                    var slotEnd;
+
+                    if (i < hours.length - 1) {
+                        slotEnd = hours[i + 1];
+                    } else {
+                        slotEnd = 24;
+                    }
+
+                    var slotEndMinutes = slotEnd * 60;
+
+                    if (currentMinutes >= slotEndMinutes) {
+                        disabled = true;
+                    }
+                }
+
+                if (disabled) {
+                    btn.addClass("disabled");
+                } else {
+                    btn.on("click", function () {
+                        if (!vino.navi_getRect()) {
+                            vino.lyt_startTouchEffect();
+                        }
+
+                        vino.soundPlayVolume("SE_APPEAR_DETAIL_2", 30);
+
+                        var h = parseInt($(this).attr("data-hour"), 10);
+                        var dayOffset = parseInt($(this).attr("data-day"), 10);
+                        requestNewGuide(null, h, dayOffset);
+                        modal.hide();
+
+                        var x = parseInt(guideContainer.attr("data-guide-scroll-x"), 10) || 0;
+                        var y = parseInt(guideContainer.attr("data-guide-scroll-y"), 10) || 0;
+
+                        guideView.show();
+
+                        guideContainer.scrollLeft(x);
+                        guideContainer.scrollTop(y);
+
+                        guideView.find(".guide-channel-container").scrollTop(y);
+                        guideView.find(".guide-time-container").scrollLeft(x);
+                    });
+                }
+            }
+
+            slotContainer.append(slot);
+        }
+
+        modal.find(".btn-1").on("click", function (e) {
+
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+            }
+
+            vino.soundPlayVolume("SE_WAVE_CANCEL", 30);
+
+            modal.hide();
+
+            var x = parseInt(guideContainer.attr("data-guide-scroll-x"), 10) || 0;
+            var y = parseInt(guideContainer.attr("data-guide-scroll-y"), 10) || 0;
+
+            guideView.show();
+
+            guideContainer.scrollLeft(x);
+            guideContainer.scrollTop(y);
+
+            guideView.find(".guide-channel-container").scrollTop(y);
+            guideView.find(".guide-time-container").scrollLeft(x);
+        });
+
+        modal.find(".btn-2").on("click", function (e) {
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+            }
+
+            vino.soundPlayVolume("SE_APPEAR_DETAIL_3", 30);
+            requestNewGuide(null, null, null);
+            modal.hide();
+
+            var x = parseInt(guideContainer.attr("data-guide-scroll-x"), 10) || 0;
+            var y = parseInt(guideContainer.attr("data-guide-scroll-y"), 10) || 0;
+
+            guideView.show();
+
+            guideContainer.scrollLeft(x);
+            guideContainer.scrollTop(y);
+
+            guideView.find(".guide-channel-container").scrollTop(y);
+            guideView.find(".guide-time-container").scrollLeft(x);
+        });
+    }
+
+    function requestNewGuide(offset, hourValue, dayIndex) {
+        //Reset guide offset
+        disableTopBotHeaders(true);
+        $(".guide-container").off(".actualClick");
+        vino.loading_setIconAppear(true);
+
+        var requestedGuideTime;
+        if (!hourValue && !dayIndex) {
+            requestedGuideTime = tvii.getLockedHourTimestamp();
+        } else {
+            requestedGuideTime = tvii.getHourTimestampForGuide(hourValue, dayIndex);
+        }
+
+        tvii.requestProgramGuide(
+            requestedGuideTime, //Day and hour requested
+            lineup_tz,
+            lineup,
+            guideDuration,
+            guideChanneLimit,
+            offset,
+            function (guide) {
+                handleGuideData(guide, guideDuration, guideChanneLimit, hourValue, dayIndex);
+                handleGuideDropdown(guide.total, guideChanneLimit, offset, hourValue, dayIndex);
+                vino.loading_setIconAppear(false);
+                setTimeout(function () {
+                    //Disable after guide appended
+                    disableTopBotHeaders(false);
+                }, 0);
+            },
+            function () {
+                //Disable after error
+                disableTopBotHeaders(false);
+                vino.loading_setIconAppear(false);
+            }
+        );
+    }
+
+    function setupProgramPageWithAnimFromGuide(listingId, listingDate, listingChNum) {
+        disableTopBotHeaders(true);
+        var guideView = $(".guide-view");
+        var guideContainer = $(".guide-container");
+
+        // ---------- STORE SCROLL ----------
+        guideContainer.data("makeScrollContainer").stop();
+        var scrollX = guideContainer.scrollLeft();
+        var scrollY = guideContainer.scrollTop();
+
+        guideContainer
+            .attr("data-guide-scroll-x", scrollX)
+            .attr("data-guide-scroll-y", scrollY);
+
+        guideView.hide();
+
+        top.stop(true, true).animate(
+            {
+                scrollTop: top[0].scrollHeight,
+            },
+            hdrAnimSp
+        );
+
+        footer.stop(true, true).animate(
+            {
+                scrollTop: 0,
+            },
+            hdrAnimSp
+        );
+
+        setTimeout(function () {
+            head.hide();
+            head2.show();
+            bott.removeClass("guideopt");
+            bott.addClass("prfuldet");
+
+            top.scrollTop(top[0].scrollHeight);
+
+            top.stop(true, true).animate(
+                {
+                    scrollTop: 0,
+                },
+                hdrAnimSp - 100
+            );
+
+            footer.stop(true, true).animate(
+                {
+                    scrollTop: footer[0].scrollHeight,
+                },
+                hdrAnimSp,
+                function () {
+                    setTimeout(function () {
+                        //Actually set up Program Page
+                        //setupProgramPage handles disabling lock controls!
+
+                        //Disable navi visibility on program detail
+                        vino.navi_setBaseVisibilityOnKeyEvent(false);
+                        setupProgramPage({
+                            programListingId: listingId,
+                            programDate: listingDate,
+                            programChannelNum: listingChNum,
+                        });
+                    }, 0);
+                }
+            );
+        }, hdrAnimSp);
+    }
+
+    //6 hours of guide.
+    var guideDuration = 60 * 6;
+    var guideChanneLimit = 40;
+
     function initGuideTab() {
+        //Disable every action.
+        disableTopBotHeaders(true);
+
         abortReqsXhr();
         showMiiversePostPreview(false);
         $(".footer .bottom").addClass("guideopt");
         tvii.pushStateWithQuery("scene", "guidetab", false);
+
+        //clean guide button listener
+        $(".header .tabs>a:nth-child(2)").text(tvii.getLoc("vino.home.header.guide"));
+        $(".guide-button .guide-page-select").empty();
+        $(".guide-button .guide-page").off("mousedown");
+        $(".guide-button .guide-page span").text("");
+        $(".guide-button .guide-time").off("click");
+        $(".guide-page select").off("change");
+
         clearInterval(window.infoUpdInterval);
         vino.lyt_reset();
-        $(".guide-view").empty();
-        $(".guide-view").hide();
-        $(".program-central").hide();
-        $(".program-central").empty();
+        //program central
+        cent.empty();
+        cent.hide();
         vino.requestGarbageCollect();
-        vino.navi_setBaseVisibilityOnKeyEvent(false);
+        vino.navi_setBaseVisibilityOnKeyEvent(true);
         vino.loading_setIconRect(360, 160, 120, 120);
+
+        var html = $(".guide-view-template").html();
+        //grid
+        grid.html(html);
+
+        //show guide.
+        grid.show();
+
+        var chan = $(".guide-channel-container");
+        var time = $(".guide-time-container");
+
+        $(".guide-time").on("click", function () {
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_POPUP_TOUCH_OFF", 30);
+            openGuideSettingsModal();
+        });
+
+        $(".guide-page").on("mousedown", function () {
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_CMN_CURSOR_SELECT", 30);
+        });
+
+        $(".guide-page select").on("change", function () {
+            var o = $(this);
+            var selected = o.find("option:selected");
+
+            var offset = parseInt(selected.val(), 10) - 1;
+            var hourV = selected.attr("data-hour-value") === "null" ? null : parseInt(selected.attr("data-hour-value"), 10);
+            var dayI = selected.attr("data-day-index") === "null" ? null : parseInt(selected.attr("data-day-index"), 10)
+
+            requestNewGuide(guideChanneLimit * offset, hourV, dayI);
+            o.parent().find("span").text(selected.text());
+
+            var guideContainer = grid.find(".guide-container");
+            guideContainer.attr("data-guide-scroll-x", 0)
+            guideContainer.attr("data-guide-scroll-y", 0)
+
+            grid.show();
+            guideContainer.scrollLeft(0);
+            guideContainer.scrollTop(0);
+            grid.find(".guide-channel-container").scrollTop(0);
+            grid.find(".guide-time-container").scrollLeft(0);
+        });
+
+        var startY = 0;
+        var isDown = false;
+        var played = false;
+
+        $(".guide-time").text(tvii.getLoc("vino.home.guide.change_guide_time"));
+
+        $(".guide-container").on("mousedown", function (e) {
+            isDown = true;
+            played = false;
+            startY = e.pageY;
+        });
+
+        $(".guide-container").on("mousemove", function (e) {
+            if (!isDown || played) return;
+
+            var diff = Math.abs(e.pageY - startY);
+
+            if (diff > 120) {
+                vino.soundPlayVolume("SE_SLIDE_SPEED", 30);
+                played = true; // prevent repeating
+            }
+        });
+
+        $(".guide-container").on("mouseup", function () {
+            isDown = false;
+        });
+
+        $(".guide-container").makeScrollContainer(4).on("scrolling", function (e, data) {
+
+            var scrollX = data.scrollX;
+            var scrollY = data.scrollY;
+
+            chan.scrollTop(scrollY);
+            time.scrollLeft(scrollX);
+
+        });
+
+        vino.loading_setIconAppear(true);
+
+        var currentTime = tvii.getLockedHourTimestamp();
+        tvii.requestProgramGuide(
+            currentTime,
+            lineup_tz,
+            lineup,
+            guideDuration,
+            guideChanneLimit,
+            0,
+            function (guide) {
+                handleGuideData(guide, guideDuration, guideChanneLimit, null, null);
+                handleGuideDropdown(guide.total, guideChanneLimit, 0, null, null);
+                vino.loading_setIconAppear(false);
+                setTimeout(function () {
+                    //Disable after guide appended
+                    disableTopBotHeaders(false);
+                }, 0);
+            },
+            function () {
+                //Disable after error
+                disableTopBotHeaders(false);
+                vino.loading_setIconAppear(false);
+            }
+        );
     }
 
     function initRecommendedTab() {
@@ -5678,11 +6785,26 @@ function initVinoHome() {
         showMiiversePostPreview(false);
         $(".footer .bottom").addClass("guideopt");
         tvii.pushStateWithQuery("scene", "recomtab", false);
+
+        //clean guide button listener
+        $(".header .tabs>a:nth-child(2)").text(tvii.getLoc("vino.home.header.guide"));
+        $(".guide-button .guide-page-select").empty();
+        $(".guide-button .guide-page").off("mousedown");
+        $(".guide-button .guide-page span").text("");
+        $(".guide-button .guide-time").off("click");
+        $(".guide-page select").off("change");
+
         clearInterval(window.infoUpdInterval);
         vino.lyt_reset();
-        $(".guide-view").empty();
-        $(".program-central").hide();
-        $(".program-central").empty();
+
+        //guide
+        grid.empty();
+        grid.hide();
+
+        //program central
+        cent.empty();
+        cent.hide();
+
         vino.requestGarbageCollect();
         vino.navi_setBaseVisibilityOnKeyEvent(false);
         vino.loading_setIconRect(360, 160, 120, 120);
@@ -5730,7 +6852,39 @@ function initVinoHome() {
         }
     }
 
-    initLiveTab();
+    var rosev_key_id = "vino_roseverse_seen" + pid;
+    var has_checked_rosev = vino.ls_getItem(rosev_key_id);
+
+    if (has_checked_rosev) {
+        $(".roseverse-promo-modal").remove();
+        initLiveTab();
+    } else {
+        $(".roseverse-promo-modal .close-rose-modal").on("click", function () {
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_CLOSE", 30);
+            $(".roseverse-promo-modal .close-rose-modal").off("click");
+            $(".roseverse-promo-modal .rose-browser-jump").off("click");
+            $(".roseverse-promo-modal").remove();
+            vino.ls_setItem(rosev_key_id, "1");
+            initLiveTab();
+        })
+
+        $(".roseverse-promo-modal .rose-browser-jump").on("click", function () {
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_TAB_SELECT", 30);
+            setTimeout(function () {
+                vino.jumpToBrowser("http://miiverse.projectrose.cafe", false);
+            }, 0);
+        })
+
+        tvii.templates.setUpLocHTML();
+
+        $(".roseverse-promo-modal").show();
+    }
 }
 
 window.addEventListener("load", function () {

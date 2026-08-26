@@ -118,6 +118,9 @@ tvii.locFile = {
     "vino.home.olv.modal.header_title_new": "<b>Nuevo</b> %s",
     "vino.home.olv.modal.header_title_live": '<b class="live">En vivo</b> %s',
 
+    "vino.home.olv.modal.header_title_new": "<b>Nuevo</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">En vivo</b> %s',
+
     "vino.home.olv.modal.jump_miiverse_post": "Ver la última publicacion de<br>este usuario en Miiverse",
     "vino.home.olv.modal.is_friends": "Amigos",
     "vino.home.olv.modal.is_myself": "Yo mismo",
@@ -162,6 +165,11 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.empathy.surprised.remove": 'Mejor no',
 
     "vino.home.olv.crosspost.post.view_spoiler": 'Ver Revelaciones',
+    "vino.home.olv.crosspost.post.spoiler": 'Revelaciones',
+
+    "vino.home.olv.screenshot.modal.title": 'Imagen/dibujo de %s',
+
+    "vino.home.olv.help": "Puedes enviar mensajes y dibujos mientras miras televisión en vivo para compartir sus pensamientos sobre el programa en vivo que estas viendo con otras personas.\n\nLos mensajes son actualizados en tiempo real, por favor evita enviar cualquier cosa inapropiada que pueda hacer que otros usuarios se sientan incómodos, si crees que tu mensaje contiene información sobre episodios anteriores, o los próximos episodios de un programa, que usted siente que otros usuarios no quieren saber, o aún no saben, por favor asegúrate de marcar la casilla de Revelaciones. Para ver todos los mensajes sobre un programa, visita https://projectrose.cafe/tvii/olv en un navegador web.",
 
     "vino.home.olv.crosspost.error.no_miiverse_yet": "Está funcionalidad aún no esta\nlista, y los mensajes no son enviados\ntambién en Miiverse por ahora.",
 
@@ -172,11 +180,29 @@ tvii.locFile = {
     "vino.home.program.airing_duration.duration": "%s minutos",
     "vino.home.program.cast": "Elenco",
 
-    "vino.home.not_available_feature": "Esta funcionalidad no esta lista aún.\n\nPara ayuda, únete al servidor de Discord en\nhttps://discord.gg/AaTsXndGun",
-    "vino.home.not_available_actor_feature": "La funcionalidad para ver los actores\naún no esta lista.\n\nPara ayuda, únete al servidor de Discord en\nhttps://discord.gg/AaTsXndGun",
+    "vino.home.not_available_feature": "Esta funcionalidad no esta lista aún.\n\nPara ayuda, visita nuestra página web en\nhttps://projectrose.cafe",
+    "vino.home.not_available_actor_feature": "La funcionalidad para ver los actores\naún no esta lista.\n\nPara ayuda, visita nuestra página web en\nhttps://projectrose.cafe",
 
     "vino.home.program.details_label": "Detalles",
     "vino.home.program.button.view_future_airing": "Ver transmisiones futuras",
     "vino.home.program.button.set_reminder": "Configurar recordatorio",
     "vino.home.program.button.send_friend_rec": "Recomendar a un amigo",
+
+    "vino.home.guide.time_settings.label": "Selecciona el horario para mostrar la guía.",
+    "vino.home.guide.time_settings.midnight_short": "Med.",
+    "vino.home.guide.time_settings.morning_short": "Mañ.",
+    "vino.home.guide.time_settings.afternoon_short": "Tar.",
+    "vino.home.guide.time_settings.evening_short": "Noc.",
+    "vino.home.guide.time_settings.today": "Hoy día",
+    "vino.home.guide.time_settings.tomorrow": "Mañana",
+    "vino.home.guide.time_settings.view_live": "Mostrar guía actual",
+    "vino.home.guide.time_label": "Hora",
+    "vino.home.header.guide_time": "Guía (%s)",
+    "vino.home.guide.change_guide_time": "Cambiar horario",
+    "vino.home.guide.change_page_button": "Página %s",
+
+    "vino.promo.roseverse.title": "Roséverse (La versión de Miiverse de Project Rosé) ya esta disponible en Wii U!",
+    "vino.promo.roseverse.title2": "(La versión de 3DS y web están en desarollo, y funciona con Pretendo!)",
+    "vino.promo.roseverse.text": "Roséverse es un servicio que revive el Miiverse original y restaura toda su funcionalidad y diseño, el soporte dentro de los juegos se mantiene, y hay nuevas comunidades para explorar cada semana.<br><br>Para saber más y instalar Roséverse, visita <b>miiverse.projectrose.cafe</b> (en inglés) en tu navegador web o presiona Leer Más para verlo en el navegador de Wii U.",
+    "vino.promo.roseverse.learn_more": "Leer Más"
 }

@@ -138,7 +138,8 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
                     const name = $(a).text().trim();
                     const href = $(a).attr("href") || "";
 
-                    const url = new URL(href);
+                    const decodedHref = href.replace(/&amp;/g, "&");
+                    const url = new URL(decodedHref);
 
                     const lineup_id = url.pathname.split("/set/")[1];
                     const tz = url.searchParams.get("tz");
@@ -465,7 +466,12 @@ async function getChannelScheduleByPath(
             const isLive = div.attr("data-live") === "1";
             const isNew = div.attr("data-new_show") === "1";
             const isCC = div.attr("data-captioned") === "1";
-            const url = div.find("a").first().attr("href") || null;
+            let url = div.find("a").first().attr("href") || null;
+
+            //Make exclusions for certain programs
+            if (url == "https://www.tvpassport.com/series/paid-programming/500001") {
+                url = null;
+            }
 
             const league = div.attr("data-league") || "";
             const team1 = div.attr("data-team1") || "";

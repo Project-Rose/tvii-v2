@@ -37,21 +37,11 @@ if (typeof lang === "string") {
 
 <body data-pid="<%- pid %>" data-lang="<%= lang %>" data-country="<%- country %>" data-tv-provider-tz="<%- tz_name %>" data-region="<%- region %>" data-utc-offset="<%- utc_offset %>" data-tv-provider-id="<%- tv_provider_id %>">
 
-  <img style="display: none" src="/img/feeling_sprite.png" width="0" height="0" />
-  <img style="display: none" src="/img/spoiler-button.png" width="0" height="0" />
-  <img style="display: none" src="/img/bg-postm-bar.png" width="0" height="0" />
-  <img style="display: none" src="/img/bg_bar_purple.png" width="0" height="0" />
-  <img style="display: none" src="/img/bg_bar_red.png" width="0" height="0" />
-
   <div class="wrapper">
-    <button style="display: none" class="title-program-up hidden-e hidden-&"></button>
-    <button style="display: none" class="title-program-down hidden-d hidden-("></button>
-    <button style="display: none" class="title-program-confirm hidden-a"></button>
-
     <div class="top">
       <div class="header home-page">
         <a href="javascript:void(0)" class="exit"></a>
-        <a href="javascript:void(0)" class="menu" data-loc="vino.home.header.menu"></a>
+        <a href="javascript:void(0)" class="accesskey-y menu" data-loc="vino.home.header.menu"></a>
         <div class="tabs">
           <a href="javascript:void(0)" data-loc="vino.home.header.live" class="selected"></a>
           <a href="javascript:void(0)" data-loc="vino.home.header.guide"></a>
@@ -68,7 +58,7 @@ if (typeof lang === "string") {
       </div>
 
       <div class="header miiverse" style="display: none">
-        <a href="javascript:void(0)" class="help"></a>
+        <a href="javascript:void(0)" class="help miiverse-help"></a>
         <p>
           <span></span>
         </p>
@@ -80,16 +70,142 @@ if (typeof lang === "string") {
     <div class="program-central"></div>
 
     <div class="guide-view" style="display: none">
+    </div>
+
+    <script type="text/template" class="guide-view-template" style="display:none;">
       <div class="guide-time-container">
+        <a class="label"></a>
       </div>
       <div class="guide-channel-container">
       </div>
       <div class="guide-container l-stick-scroll">
       </div>
-    </div>
+    </script>
+
+    <div class="guide-time-settings popup" style="display: none"></div>
+
+    <script type="text/template" class="guide-time-settings-template" style="display:none;">
+      <button class="dummy accesskey-y"></button>
+
+      <div class="dialog-container">
+        <p class="title"></p>
+        <div class="time-slots">
+          <div class="slot">
+            <p></p>
+            <div>
+              <b></b>
+              <span></span>
+            </div>
+
+            <a navi_target href="javascript:void(0)"></a>
+            <a navi_target href="javascript:void(0)"></a>
+            <a navi_target href="javascript:void(0)"></a>
+            <a navi_target href="javascript:void(0)"></a>
+          </div>
+        </div>
+        <div class="dialog-buttons">
+          <a href="javascript:void(0)" navi_target="" class="btn-1 accesskey-b"></a>
+          <a href="javascript:void(0)" navi_target="" class="btn-2"></a>
+        </div>
+      </div>
+    </script>
 
     <div class="menu-modal popup" style="display: none">
     </div>
+
+    <script type="text/template" class="menu-screen-template" style="display: none;">
+      <button class="dummy accesskey-e accesskey-&"></button>
+    <button class="dummy accesskey-d accesskey-("></button>
+    <button class="dummy accesskey-a"></button>
+    <button class="dummy accesskey-y"></button>
+
+    <div class="dialog-container">
+        <p class="label symbol">Menu</p>
+        <div class="menu-section">
+          <a class="input-container">
+            <span>Search for programs, actors, etc.</span>
+            <input type="text" navi_target navi_no_reset vino_suggest class="symbol" placeholder="Search for programs, actors, etc.">
+          </a>
+          <a href="javascript:void(0)" navi_target class="button">Search by Genre</a>
+        </div>
+        <div class="menu-section-2">
+          <a href="javascript:void(0)" navi_target class="button">
+            <span class="symbol">Manage Favorites</span>
+          </a>
+          <a href="javascript:void(0)" navi_target class="button">
+            <span class="symbol">Manual</span>
+          </a>
+          <a href="javascript:void(0)" navi_target class="button">
+            <span class="symbol">Settings</span>
+          </a>
+        </div>
+        <a href="javascript:void" navi_target class="accesskey-b close-button"> Close</a>
+      </div>
+    </script>
+
+    <div class="menu-settings-all popup" style="display: none">
+    </div>
+
+    <script type="text/template" class="menu-settings-all-template" style="display:none;">
+      <button class="dummy accesskey-e accesskey-&"></button>
+      <button class="dummy accesskey-d accesskey-("></button>
+      <button class="dummy accesskey-a"></button>
+      <button class="dummy accesskey-y"></button>
+
+      <div class="top thu">
+
+      <div class="header pr-details menu-header" style="">
+        <p>
+          <span>Settings</span>
+        </p>
+      </div>
+      
+      </div>
+
+      <div class="settings-container">
+
+      <div class="settings-screen screen-0">
+        <div class="button-container">
+        <a href="javascript:void(0)" data-setting-type="1" navi_target="" class="button-settings">
+            <span class="symbol">Setup TV Remote/IR Settings</span>
+        </a>
+        <a href="javascript:void(0)" data-setting-type="2" navi_target="" class="button-settings">
+            <span class="symbol">Change TV Provider</span>
+        </a>
+        <a href="javascript:void(0)" data-setting-type="3" navi_target="" class="button-settings">
+            <span class="symbol">View/Change Profile Information</span>
+        </a>
+      </div>
+      <div class="button-container">
+        <a href="javascript:void(0)" data-setting-type="4" navi_target="" class="button-settings">
+            <span class="symbol">Change Social Media Settings</span>
+        </a>
+        <a href="javascript:void(0)" data-setting-type="5" navi_target="" class="button-settings">
+            <span class="symbol">View Post History</span>
+        </a>
+        <a href="javascript:void(0)" data-setting-type="6" navi_target="" class="button-settings">
+            <span class="symbol">Auto Power-Down Settings</span>
+        </a>
+        </div>
+      </div>
+
+      <div class="settings-screen screen-1" style="display:none;"></div>
+      <div class="settings-screen screen-2" style="display:none;">
+        <div class="label-setting">
+        <p>Enter your zipcode:</p>
+        <div class="zipcode-input">
+            <input navi_target navi_no_reset type="number" maxlength="5" class="zip-usa none" />
+            <input navi_target navi_no_reset type="text" maxlength="7" class="zip-canada none" />
+        </div>
+        </div>
+      </div>
+    
+      </div>
+
+      <a href="javascript:void(0)" class="back-modal accesskey-b" style="pointer-events: auto;"></a>
+
+
+    </script>
 
     <div class="miiverse-modal" style="display: none">
     </div>
@@ -98,6 +214,9 @@ if (typeof lang === "string") {
     </div>
 
     <div class="miiverse-post-modal popup" style="display: none">
+    </div>
+
+    <div class="miiverse-image-view popup" style="display: none">
     </div>
 
     <div class="miiverse-user-details popup" style="display: none">
@@ -123,10 +242,13 @@ if (typeof lang === "string") {
           <span data-loc="vino.post"></span>
         </a>
         <div class="guide-button">
-          <div class="guide-navi">
-            <a href="javascript:void(0)" class="left"></a>
-            <a href="javascript:void(0)" class="right"></a>
-          </div>
+          <a href="javascript:void(0)" class="guide-time"></a>
+          <a href="javascript:void(0)" class="guide-page">
+            <span></span>
+            <select class="guide-page-select">
+            </select>
+          </a>
+          <a href="javascript:void(0)" class="ad"></a>
         </div>
 
         <div class="clock">
@@ -164,11 +286,42 @@ if (typeof lang === "string") {
       </div>
     </script>
 
-  <script type="text/template" class="menu-screen-template" style="display: none">
-    <div class="menu-container">
-        
+
+  <script type="text/template" class="miiverse-post-template" style="display: none">
+    <div class="post" data-post-id="">
+    <div class="mii" data-user-pid="" tabindex="0" navi_target>
+      <img src="/img/noimg.png">
+    </div>
+    <div class="post-content">
+      <header>
+        <span class="username"></span>
+        <span class="date datetime"></span>
+        <span class="date spoilers"></span>
+      </header>
+
+      <div class="content">
+
+        <img class="memo" src="/img/noimg.png">
+
+        <p></p>
+
+        <div class="screenshot" tabindex="0" navi_target data-screenshot="">
+           <img src="/img/noimg.png">
+        </div>
+
+        <button class="spoiler" navi_target tabindex="0"></button>
+
       </div>
-    </script>
+
+      <div class="post-meta">
+        <button class="yeah" data-feeling="" navi_target navi_no_reset tabindex="0"></button>
+        <button class="doodle" tabindex="0" navi_target=""></button>
+        <span class="yeahs"></span>
+      </div>
+      <a class="post-href" href="javascript:void(0)" navi_target></a>
+    </div>
+  </div>
+</script>
 
 
   <script type="text/template" class="program-fulldetails-page-template" style="display: none">
@@ -236,10 +389,7 @@ if (typeof lang === "string") {
 
         <div class="program-slide program-buttons">
           <div class="related-buttons">
-            <a navi_target href="javascript:void(0)" class="view-all-airings disabled">
-              <span data-loc="vino.home.program.button.view_future_airing"></span>
-            </a>
-            <span class="sep"></span>
+            <!--<span class="sep"></span>-->
             <a navi_target href="javascript:void(0)" class="reminder disabled">
               <span data-loc="vino.home.program.button.set_reminder"></span>
             </a>
@@ -255,8 +405,6 @@ if (typeof lang === "string") {
   <script type="text/template" class="miiverse-modal-template" style="display: none">
     <div class="miiverse-button-menu">
         <a href="javascript:void(0)" class="miiverse-top">
-        </a>
-        <a href="javascript:void(0)" class="miiverse-refresh disabled">
         </a>
         <a href="javascript:void(0)" class="miiverse-doodle-default disabled">
         </a>
@@ -333,6 +481,13 @@ if (typeof lang === "string") {
           <a href="javascript:void(0)" navi_target class="btn-2"  data-loc="vino.post"></a>
         </div>
       </div>
+    </script>
+
+  <script type="text/template" class="miiverse-image-view-template" style="display: none">
+    <a href="javascript:void(0)" class="back-modal accesskey-b"></a>
+    <img src="/img/noimg.png" class="image-mii">
+    <p class="image-name-container">...</p>
+    <img src="/img/noimg.png" class="image-element">
     </script>
 
   <script type="text/template" class="miiverse-doodle-modal-template" style="display: none">
@@ -452,6 +607,10 @@ if (typeof lang === "string") {
     </script>
 
   <script type="text/template" id="template-live-tab">
+    <button style="display: none" class="title-program-up hidden-e hidden-&"></button>
+    <button style="display: none" class="title-program-down hidden-d hidden-("></button>
+    <button style="display: none" class="title-program-confirm hidden-a"></button>
+
     <div class="program-list">
       <div class="scrollbar">
         <div class="track"></div>
@@ -991,6 +1150,52 @@ if (typeof lang === "string") {
 
 </script>
 
+
+  <div class="roseverse-promo-modal" style="display: none;width: 854px;height: 480px;position: absolute;z-index: 999;background: url(/img/roseverse_promo.png) right 0 no-repeat, #fff;">
+    <div class="content" style="
+    font-size: 22px;
+    width: 600px;
+    padding: 20px 30px;
+">
+      <p style="
+    font-size: 28px;
+    font-weight: bold;
+    color: #2abf00;
+" data-loc="vino.promo.roseverse.title"></p>
+      <p style="
+    font-size: 18px;
+    color: #919191;
+" data-loc="vino.promo.roseverse.title2"></p>
+      <p style="
+    font-size: 20px;
+" data-loc="vino.promo.roseverse.text"></p>
+    </div>
+
+    <div style="
+    display: -webkit-box;
+    width: 780px;
+    margin-left: 30px;
+    -webkit-box-align: center;
+    -webkit-box-pack: justify;
+">
+      <a href="javascript:void(0)" class="close-rose-modal" navi_target data-loc="vino.cancel" style="padding: 10px;font-size: 22px;border: none;display: -webkit-box;-webkit-box-pack: center;text-align: center;-webkit-box-align: center;color: #323232;box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);width: 300px;border-radius: 10px;background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), color-stop(0.5, #ffffff), color-stop(0.8, #f6f6f6), color-stop(0.96, #f5f5f5), to(#bbbbbb)) 0 0;"></a>
+      <a href="javascript:void(0)" class="rose-browser-jump" navi_target data-loc="vino.promo.roseverse.learn_more" style="
+    padding: 10px;
+    font-size: 22px;
+    border: none;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    text-align: center;
+    -webkit-box-align: center;
+    color: #323232;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+    width: 300px;
+    border-radius: 10px;
+    background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), color-stop(0.5, #ffffff), color-stop(0.8, #f6f6f6), color-stop(0.96, #f5f5f5), to(#bbbbbb)) 0 0;
+"></a>
+    </div>
+
+  </div>
 
 </body>
 
