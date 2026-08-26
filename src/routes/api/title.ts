@@ -35,7 +35,7 @@ const cache = new NodeCache({
 });
 
 const label_text = {
-    en: "User of the day",
+    en: "Today's Top User",
     es: "Usuario del día",
     fr: "Utilisateur du jour"
 };
@@ -63,6 +63,36 @@ router.get("/", async (req: Request, res: Response) => {
     try {
         const lang = String(req.query.lang || "en").toLowerCase();
         const label_text_top = label_text[lang as keyof typeof label_text] || label_text.en;
+
+        const now = new Date();
+        const nyNow = new Date(
+            now.toLocaleString("en-US", { timeZone: "America/New_York" })
+        );
+
+        // Extract parts
+        var day = nyNow.getDate();
+        var month = nyNow.getMonth() + 1;
+        var year = nyNow.getFullYear();
+
+        // zero pad
+        function pad(n: number) {
+            return n < 10 ? "0" + n : String(n);
+        }
+
+        var dateStr;
+
+        // Format depending on language
+        if (lang === "en") {
+            // month-day-year
+            dateStr = pad(month) + "-" + pad(day) + "-" + year;
+        } else {
+            // day-month-year (fr/es)
+            dateStr = pad(day) + "-" + pad(month) + "-" + year;
+        }
+
+        // prepend to label
+        const final_label_text_top = label_text_top + " (" + dateStr + ")";
+
         const label_post_count = post_count_label[lang as keyof typeof post_count_label] || post_count_label.en;
 
         const ttl = getSecondsUntilMidnight();
@@ -93,7 +123,7 @@ router.get("/", async (req: Request, res: Response) => {
         if (!randomUser) {
             const latestUsers = await db("account as a")
                 .leftJoin("posts as p", "p.pid", "a.pid")
-                .whereNotIn("a.pid", [1096936939,1657427234]) // project rose staff, david joaq
+                .whereNotIn("a.pid", env.VINO_JP_STAFF_PIDS)
                 .select("a.*")
                 .count("p.post_id as post_count")
                 .groupBy("a.pid")
@@ -152,12 +182,12 @@ router.get("/", async (req: Request, res: Response) => {
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
         ctx.shadowBlur = 2;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 2;
 
-        ctx.fillText(label_text_top, width / 2, 42);
+        ctx.fillText(final_label_text_top, width / 2, 42);
 
         // name
         ctx.shadowColor = "rgba(255,255,255,0.9)";

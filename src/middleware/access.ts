@@ -6,7 +6,7 @@ import { env } from "../env.ts";
 import { join } from "path";
 
 const environment = env.VINO_JP_CONFIG_ENV as "dev" | "stg" | "prod";
-const latest_version = "v1.2.6";
+const latest_version = "v1.2.7";
 
 const middleware = async (
     req: Request,

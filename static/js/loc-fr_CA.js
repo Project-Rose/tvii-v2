@@ -115,12 +115,15 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.spoilers": "C'est une révélation",
     "vino.home.olv.crosspost.post.doodlebut": 'Doodle',
 
-    "vino.home.olv.modal.jump_miiverse_post": "View user's latest post on Miiverse",
-    "vino.home.olv.modal.is_friends": "Friends",
-    "vino.home.olv.modal.is_myself": "Myself",
-    "vino.home.olv.modal.add_friend": "Add as Friend",
-    "vino.home.olv.modal.post_count": "%s posts",
-    "vino.home.olv.modal.ask_adding_friend": "Do you want to close Nintendo TVii\nand jump to the HOME Menu to\nadd this user as a friend?",
+    "vino.home.olv.modal.header_title_new": "<b>Nouveau</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">En direct</b> %s',
+
+    "vino.home.olv.modal.jump_miiverse_post": "Voir le dernier message de l'utilisateur sur Miiverse",
+    "vino.home.olv.modal.is_friends": "Amis",
+    "vino.home.olv.modal.is_myself": "Moi-même",
+    "vino.home.olv.modal.add_friend": "Ajouter comme ami",
+    "vino.home.olv.modal.post_count": "%s messages",
+    "vino.home.olv.modal.ask_adding_friend": "Voulez-vous fermer Nintendo TVii\nand sauter dans le menu HOME pour que cet utilisateur en tant qu'ami?",
 
     "vino.home.olv.crosspost.post.text_placeholder": 'Appuyez ici pour écrire un message...',
     "vino.home.olv.crosspost.post.placeholder_doodle": 'Appuyez ici pour joindre un message.',
@@ -159,6 +162,11 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.empathy.surprised.remove": 'Retirer',
 
     "vino.home.olv.crosspost.post.view_spoiler": 'Afficher le message',
+    "vino.home.olv.crosspost.post.spoiler": 'Révélation',
+
+    "vino.home.olv.screenshot.modal.title": "Capture d'écran/image de %s",
+
+    "vino.home.olv.help": "Vous pouvez faire des posts et des dessins tout en regardant la télévision en direct pour partager vos pensées sur le programme que vous regardez avec d'autres personnes. \n\nMessages sont mis à jour en temps réel, s'il vous plaît éviter d'envoyer quelque chose d'inapproprié qui pourrait rendre les autres utilisateurs se sentent mal à l'aise, si vous pensez que votre message contient quelque chose sur les épisodes précédents, ou les épisodes à venir d'un programme que vous pensez que d'autres utilisateurs pourraient ne pas vouloir savoir, ou savoir encore, s'il vous plaît assurez-vous de cocher la case 'C'est une révélation'. \n\nPour voir tous les messages sur un programme, visitez https://projectrose.cafe/tvii/olv sur un navigateur Web.",
 
     "vino.home.olv.crosspost.error.no_miiverse_yet": "Cette fonction n'est actuellement pas disponible\ncar les messages sont en cours de croisement\nvers Miiverse pour l'instant.",
 
@@ -169,11 +177,29 @@ tvii.locFile = {
     "vino.home.program.airing_duration.duration": "%s minutes",
     "vino.home.program.cast": "Cast",
 
-    "vino.home.not_available_feature": "Cette option n'est pas encore disponible. \n\nPour contacter le support, rejoignez le serveur Discord à\nhttps://discord.gg/AaTsXndGun",
-    "vino.home.not_available_actor_feature": "La fonction pour voir l'info de l'acteur/actrice \n n'est pas encore disponible. \n\nPour contacter le support, rejoignez le serveur Discord à\nhttps://discord.gg/AaTsXndGun",
+    "vino.home.not_available_feature": "Cette option n'est pas encore disponible. \n\nPour obtenir du soutien, visitez notre\nsite Web au https://projectrose.cafe",
+    "vino.home.not_available_actor_feature": "La fonction pour voir l'info de l'acteur/actrice \n n'est pas encore disponible. \n\nPour obtenir du soutien, visitez notre\nsite Web au https://projectrose.cafe",
 
     "vino.home.program.details_label": "Détails",
     "vino.home.program.button.view_future_airing": "Voir les émissions à venir",
     "vino.home.program.button.set_reminder": "Définir le rappel du programme",
     "vino.home.program.button.send_friend_rec": "Recommander à un ami",
+
+    "vino.home.guide.time_settings.label": "Sélectionnez un créneau horaire pour afficher le guide.",
+    "vino.home.guide.time_settings.midnight_short": "Minu.",
+    "vino.home.guide.time_settings.morning_short": "Mat.",
+    "vino.home.guide.time_settings.afternoon_short": "Aprè.",
+    "vino.home.guide.time_settings.evening_short": "Soir.",
+    "vino.home.guide.time_settings.today": "Aujourd'hui",
+    "vino.home.guide.time_settings.tomorrow": "Demain",
+    "vino.home.guide.time_settings.view_live": "Affichez le guide en direct",
+    "vino.home.guide.time_label": "Heure",
+    "vino.home.header.guide_time": "Guide (%s)",
+    "vino.home.guide.change_guide_time": "Changer l'heure du guide",
+    "vino.home.guide.change_page_button": "Page %s",
+
+    "vino.promo.roseverse.title": "Roséverse (Project Rosé’s Miiverse) est disponible dès maintenant sur Wii U !",
+    "vino.promo.roseverse.title2": "(Nintendo 3DS et versions web en développement, fonctionne avec Pretendo!)",
+    "vino.promo.roseverse.text": "Roséverse est une reprise précise de Miiverse qui restaure toutes ses fonctionnalités et design d’origine, le support à l’intérieur des jeux est conservé, et de nouvelles communautés sont ajoutées chaque semaine.<br><br>Pour en savoir plus et installer Roséverse, veuillez visiter <b>miiverse.projectrose.cafe</b> ou un navigateur externe ou cliquer sur En savoir plus pour ouvrir le navigateur Internet.",
+    "vino.promo.roseverse.learn_more": "En savoir plus"
 }

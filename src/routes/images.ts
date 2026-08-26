@@ -1,6 +1,7 @@
 import express, { type Request, type Response, type Router } from "express";
 import sharp from "sharp";
 import NodeCache from "node-cache";
+import { env } from "../env";
 
 const router: Router = express.Router();
 const imageCache = new NodeCache({
@@ -78,7 +79,7 @@ router.get(/^\/cdn\/tvp\/(.+)$/, async (req: Request, res: Response) => {
             return res.status(200).send(cachedImage);
         }
 
-        const imageUrl = `https://cdn.tvpassport.com/${imagePath}`;
+        const imageUrl = `https://${env.VINO_JP_TV_CDN_URL}/${imagePath}`;
 
         const response = await fetch(imageUrl, {
             tls: {

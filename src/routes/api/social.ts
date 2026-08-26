@@ -169,6 +169,7 @@ router.get(
 
             const postCountRow = await db("posts")
                 .where({ pid })
+                .andWhere("removed", 0)
                 .count("* as count")
                 .first();
 
@@ -229,7 +230,8 @@ router.get(
                 }
             }
 
-            if (pid == "1657427234") {
+            // TypeScript needed the "as string" for some reason
+            if (env.VINO_JP_STAFF_PIDS.includes(pid as string)) {
                 user_id = "??????????"
             }
 
@@ -421,16 +423,16 @@ router.post(
 
                     await s3.send(new PutObjectCommand(uploadParams));
                     console.log(
-                        `✅ PostAlt Screenshit PNG Uploaded ${memoCdnKey} to ${bucketName}`
+                        `✅ PostAlt Screenshot PNG Uploaded ${memoCdnKey} to ${bucketName}`
                     );
                 } catch (err) {
                     console.error(
-                        "❌ PostAlt Error uploading PNG (screenshit):",
+                        "❌ PostAlt Error uploading PNG (screenshot):",
                         err
                     );
                     return res.status(500).json({
                         status: "error",
-                        error: "Could not upload screenshit to CDN.",
+                        error: "Could not upload screenshot to CDN.",
                     });
                 }
             }
@@ -444,6 +446,7 @@ router.post(
                 screenshot: screenshotCdnKey,
                 feeling_id: safeFeelingId,
                 is_spoiler: safeIsSpoiler,
+                removed: 0,
                 topic_tag:
                     postForm.topic_tag && postForm.topic_tag.length
                         ? postForm.topic_tag
@@ -515,11 +518,21 @@ router.post(
                         }
                     }
 
-                    await fetch(webhookUrl, {
+                    const resWebhook = await fetch(webhookUrl + "?wait=true", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ embeds: [embed] }),
                     });
+                    const webhookData = await resWebhook.json() as any;
+
+                    if (webhookData && webhookData.id) {
+                        await db("posts")
+                            .where("post_id", postIdForLink)
+                            .update({
+                                webhook_id: webhookData.id
+                            });
+                    }
+
                 } catch (err) {
                     console.error("❌ Failed to send Discord webhook:", err);
                 }
@@ -587,9 +600,17 @@ router.post(
                     }
                 }
 
+                const postResult = await db("posts").where({ post_id: postIdForLink }).first();
+
+                const postResultFinal = {
+                    ...postResult,
+                    empathies: [],
+                    mii_data: account.mii_data,
+                    mii_name: account.mii_name
+                }
                 res.status(200).json({
                     status: "success",
-                    post_id: postIdForLink,
+                    post: postResultFinal
                 });
             } else {
                 console.error("Post Insert failed");
@@ -624,6 +645,7 @@ router.get("/postsAlt", async (req: Request, res: Response): Promise<any> => {
         // Build base query
         let query = db("posts")
             .innerJoin("account", "posts.pid", "account.pid")
+            .andWhere("removed", 0)
             .whereRaw("JSON_VALID(posts.search_keys)")
             .andWhereRaw("JSON_CONTAINS(posts.search_keys, ?)", [
                 `"${search_key}"`,
@@ -716,7 +738,7 @@ router.post(
             const token = parseServiceToken(req);
             const postId = Number(req.params["postId"]);
 
-            const post = await db("posts").where({ post_id: postId }).first();
+            const post = await db("posts").where({ post_id: postId, removed: 0 }).first();
 
             if (!post) {
                 return res.status(404).json({ error: "Post not found." });
@@ -740,7 +762,7 @@ router.post(
 
             if (existing) {
                 //what the miiverse yeah endpoint does anyway
-                res.status(200).json({ status: "success" });
+                return res.status(200).json({ status: "success" });
             }
 
             await db("empathies").insert({
@@ -765,7 +787,7 @@ router.delete(
 
             const postId = Number(req.params["postId"]);
 
-            const post = await db("posts").where({ post_id: postId }).first();
+            const post = await db("posts").where({ post_id: postId, removed: 0 }).first();
 
             if (!post) {
                 return res.status(404).json({ error: "Post not found." });
@@ -789,7 +811,7 @@ router.delete(
 
             if (!existing) {
                 // is this the right error code?
-                res.status(500).json({ status: "empathy does not exist" });
+                return res.status(500).json({ status: "empathy does not exist" });
             }
 
             await db("empathies")

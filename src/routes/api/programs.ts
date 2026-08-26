@@ -1,4 +1,5 @@
 import express, { type Request, type Response, type Router } from "express";
+import { env } from "../../env";
 import { z } from "zod";
 
 const router: Router = express.Router();
@@ -35,7 +36,7 @@ router.get("/:programId", async (req: Request, res: Response) => {
 
     try {
         const response = await fetch(
-            `https://backend.tvguide.com/tvschedules/tvguide/programdetails/${validatedProgramId}/web`
+            `${env.VINO_JP_TV_PROGRAM_DETAILS_BASE_URL}/${validatedProgramId}/web`
         );
 
         if (!response.ok) {

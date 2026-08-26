@@ -115,6 +115,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.spoilers": 'Mark as Spoiler',
     "vino.home.olv.crosspost.post.doodlebut": 'Doodle',
 
+    "vino.home.olv.modal.header_title_new": "<b>New</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">Live</b> %s',
+
     "vino.home.olv.modal.jump_miiverse_post": "View this user's latest post on Miiverse",
     "vino.home.olv.modal.is_friends": "Friends",
     "vino.home.olv.modal.is_myself": "Myself",
@@ -159,6 +162,11 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.empathy.surprised.remove": 'Unyeah',
 
     "vino.home.olv.crosspost.post.view_spoiler": 'View Spoilers',
+    "vino.home.olv.crosspost.post.spoiler": 'Spoilers',
+
+    "vino.home.olv.screenshot.modal.title": 'Image/doodle from %s',
+
+    "vino.home.olv.help": 'You can make posts and drawings while watching live TV to share your thoughts about the program you are watching with other people.\n\nMessages are updated in real-time, please avoid sending anything inappropriate that might make other users feel uncomfortable, if you think your post contains something about previous episodes, or upcoming episodes of a program that you feel other users might not want to know, or know yet, please make sure to tick the Spoilers checkbox.\n\nTo see all posts about a program, visit https://projectrose.cafe/tvii/olv on a web browser.',
 
     "vino.home.olv.crosspost.error.no_miiverse_yet": "This function is currently not available\nsince posts arent being crossposted\nto Miiverse for now.",
 
@@ -169,11 +177,29 @@ tvii.locFile = {
     "vino.home.program.airing_duration.duration": "%s minutes",
     "vino.home.program.cast": "Cast",
 
-    "vino.home.not_available_feature": "This option is not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun",
-    "vino.home.not_available_actor_feature": "The function to see actor info\nis not available yet.\n\nFor support, join the Discord server at\nhttps://discord.gg/AaTsXndGun",
+    "vino.home.not_available_feature": "This option is not available yet.\n\nFor support, visit our website at\nhttps://projectrose.cafe",
+    "vino.home.not_available_actor_feature": "The function to see actor info\nis not available yet.\n\nFor support, visit our website at\nhttps://projectrose.cafe",
 
     "vino.home.program.details_label": "Details",
     "vino.home.program.button.view_future_airing": "View Upcoming Airings",
     "vino.home.program.button.set_reminder": "Set Program Reminder",
     "vino.home.program.button.send_friend_rec": "Recommend to Friend",
+
+    "vino.home.guide.time_settings.label": "Select a time slot to display the guide.",
+    "vino.home.guide.time_settings.midnight_short": "Mid.",
+    "vino.home.guide.time_settings.morning_short": "Mor.",
+    "vino.home.guide.time_settings.afternoon_short": "Aft.",
+    "vino.home.guide.time_settings.evening_short": "Eve.",
+    "vino.home.guide.time_settings.today": "Today",
+    "vino.home.guide.time_settings.tomorrow": "Tomorrow",
+    "vino.home.guide.time_settings.view_live": "Display Live Guide",
+    "vino.home.guide.time_label": "Time",
+    "vino.home.header.guide_time": "Guide (%s)",
+    "vino.home.guide.change_guide_time": "Change Guide Time",
+    "vino.home.guide.change_page_button": "Page %s",
+
+    "vino.promo.roseverse.title": "Roséverse (Project Rosé's Miiverse) is available now for Wii U!",
+    "vino.promo.roseverse.title2": "(Nintendo 3DS and web versions on development, works with Pretendo!)",
+    "vino.promo.roseverse.text": "Roséverse is an accurate revival of Miiverse that restores all of its original functionality and design, in-game support is kept, and new communities are added every week.<br><br>To know more information and install Roséverse, please visit <b>miiverse.projectrose.cafe</b> or an external browser or click Learn More to open the internet browser.",
+    "vino.promo.roseverse.learn_more": "Learn More"
 }
