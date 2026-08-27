@@ -2085,8 +2085,6 @@ function initVinoHome() {
     });
 
     function openSettingsModalFromMenu() {
-        var form = new FormData();
-
         $(".menu-modal").hide();
         var html = $(".menu-settings-all-template").html();
         var settings = $(".menu-settings-all");
@@ -2094,13 +2092,6 @@ function initVinoHome() {
 
         var back = settings.find(".back-modal");
         tvii.setClassHoverToEls(back);
-
-        $(".button-settings").on("click", function () {
-            var t = $(this);
-            settings.find(".screen-0").hide();
-            settings.find(".menu-header span").text(t.text());
-            settings.find(".screen-" + t.attr("data-setting-type")).show();
-        })
 
         var country = tvii.getCountry();
 
@@ -2116,7 +2107,286 @@ function initVinoHome() {
             caZipCodeInput.removeClass("none");
         }
 
+        var screen2 = settings.find(".screen-2");
+        var zipStep = screen2.find(".step-zipcode");
+        var providerStep = screen2.find(".step-provider");
+        var providerList = screen2.find(".tvproviders");
+        var providerTypes = providerList.find(".providertypes>a");
+        var zipConfirm = screen2.find(".settings-zipcode-confirm");
+        var providerConfirm = screen2.find(".settings-provider-confirm");
+        var isSavingProvider = false;
+
+        // label the reused setup strings here instead of with data-loc
+        zipConfirm.text(tvii.getLoc("vino.continue"));
+        providerConfirm.text(tvii.getLoc("vino.ok"));
+        providerTypes.eq(0).text(tvii.getLoc("vino.setup.screen3.t1"));
+        providerTypes.eq(1).text(tvii.getLoc("vino.setup.screen3.t2"));
+        providerTypes.eq(2).text(tvii.getLoc("vino.setup.screen3.t3"));
+
+        tvii.setClassHoverToEls(zipConfirm.add(providerConfirm));
+        screen2.find(".settings-provider-scroll").makeScrollContainer(false);
+
+        function showZipStep() {
+            providerStep.hide();
+            zipStep.show();
+            screen2.removeClass("on-provider");
+        }
+
+        function showProviderStep() {
+            zipStep.hide();
+            providerStep.show();
+            screen2.addClass("on-provider");
+        }
+
+        function onSettingsZipUpdate() {
+            var minLength = isCA ? 3 : 5;
+            var maxLength = isCA ? 7 : 5;
+            var length = $(this).val().length;
+            if (length >= minLength && length <= maxLength) {
+                zipConfirm.removeClass("disabled");
+            } else {
+                zipConfirm.addClass("disabled");
+            }
+        }
+
+        usZipCodeInput.on("input change", onSettingsZipUpdate);
+        caZipCodeInput.on("input change", onSettingsZipUpdate);
+
+        //Same shape as setUpProviderAnchors in the setup flow, scoped to this
+        //modal and pre-selecting whatever the account is already on.
+        function setUpSettingsProviders(providers) {
+            var currentProviderId = tvii.getTVProviderID();
+
+            for (var i = 0; i < providers.data.length; i++) {
+                var provider = providers.data[i];
+                var providerA = $("<a>");
+
+                providerA.addClass("none");
+                providerA.attr("data-provider-id", provider.lineup_id);
+                providerA.attr("data-provider-tz", provider.tz_name);
+                providerA.attr("navi_target", "");
+                providerA.attr("navi_no_reset", "");
+                providerA.attr("tabindex", "0");
+                providerA.attr(
+                    "data-provider-type",
+                    provider.type === "other" ? "cable" : provider.type
+                );
+
+                var normalizedType;
+
+                if (provider.type.indexOf("cable") !== -1) {
+                    normalizedType = tvii.getLoc("vino.setup.tvtypes.cable");
+                } else if (provider.type.indexOf("other") !== -1) {
+                    normalizedType = tvii.getLoc("vino.setup.tvtypes.iptv");
+                } else if (provider.type.indexOf("antenna") !== -1) {
+                    normalizedType = tvii.getLoc("vino.setup.tvtypes.antenna");
+                } else if (provider.type.indexOf("satellite") !== -1) {
+                    normalizedType = tvii.getLoc("vino.setup.tvtypes.satellite");
+                }
+
+                if (String(provider.lineup_id) === String(currentProviderId)) {
+                    providerA.addClass("selected");
+                }
+
+                providerA.append($("<p>").html(provider.name));
+                providerA.append($("<span>").html(normalizedType));
+
+                providerList.append(providerA);
+            }
+
+            providerTypes.removeClass("selected");
+            providerTypes.first().addClass("selected");
+
+            tvii.setActualClickListener(providerList.children("a"), function () {
+                var t = $(this);
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                    var offsetPos = t.offset();
+                    vino.lyt_startTouchNodeEffect(
+                        offsetPos.left,
+                        offsetPos.top,
+                        t.outerWidth(),
+                        t.outerHeight()
+                    );
+                }
+                vino.soundPlayVolume("SE_CHECK", 30);
+                providerList.children("a").removeClass("selected");
+                t.addClass("selected");
+            });
+
+            providerList.children("a").addClass("none");
+            providerList.children('a[data-provider-type="cable"]').removeClass("none");
+
+            providerList.children('a[data-provider-type="cable"]').last().addClass("last");
+            providerList.children('a[data-provider-type="antenna"]').last().addClass("last");
+            providerList.children('a[data-provider-type="satellite"]').last().addClass("last");
+
+            providerList.removeClass("none");
+        }
+
+        function requestSettingsProviders() {
+            var code = isCA ? caZipCodeInput.val() : usZipCodeInput.val();
+
+            providerList.children("a").remove();
+            providerList.addClass("none");
+            vino.loading_setIconAppear(true);
+
+            tvii.sendXHRNoTimeout(
+                "GET",
+                "/api/v1/providers/countries/" +
+                (isCA ? "CA" : "US") +
+                "/" +
+                code,
+                function (responseText) {
+                    setUpSettingsProviders(JSON.parse(responseText));
+                    vino.loading_setIconAppear(false);
+                },
+                function () {
+                    vino.loading_setIconAppear(false);
+                    providerList.addClass("none");
+                    showZipStep();
+                    tvii.alert(
+                        tvii.getLoc("vino.setup.screen3.m1"),
+                        tvii.getLoc("vino.setup.screen3.m1.b1")
+                    );
+                }
+            );
+        }
+
+        providerTypes.on("click", function () {
+            vino.soundPlayVolume("SE_TAB_SELECT", 30);
+
+            providerTypes.removeClass("selected");
+            $(this).addClass("selected");
+
+            providerList.children("a").addClass("none");
+            providerList
+                .children(
+                    'a[data-provider-type="' +
+                    $(this).attr("data-provider-filter") +
+                    '"]'
+                )
+                .removeClass("none");
+        });
+
+        zipConfirm.on("click", function () {
+            if ($(this).hasClass("disabled")) return;
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_DECIDE", 30);
+
+            showProviderStep();
+            requestSettingsProviders();
+        });
+
+        //index.html rebuilds the lineup, timezone and body attributes from the
+        //DB, so re-request it instead of patching each one by hand.
+        function applyNewProvider() {
+            var relaunchTimer = null;
+
+            function onLeaving() {
+                window.clearTimeout(relaunchTimer);
+                window.removeEventListener("pagehide", onLeaving);
+                window.removeEventListener("unload", onLeaving);
+            }
+
+            function askToRelaunch() {
+                onLeaving();
+                vino.loading_setIconAppear(false);
+                tvii.alert(tvii.getLoc("vino.home.settings.provider_relaunch"));
+            }
+
+            //Unloading means the reload took, so drop the safety net.
+            window.addEventListener("pagehide", onLeaving);
+            window.addEventListener("unload", onLeaving);
+
+            //The change is already saved either way, so a refusal to navigate
+            //leaves the guide stale rather than wrong.
+            relaunchTimer = window.setTimeout(askToRelaunch, 10000);
+
+            try {
+                window.location.replace("index.html");
+            } catch (e) {
+                console.warn("Could not reload after provider change:", e);
+                askToRelaunch();
+            }
+        }
+
+        providerConfirm.on("click", function () {
+            if (isSavingProvider) return;
+
+            var selected = providerList.children("a.selected");
+
+            if (!selected.length) {
+                return tvii.alert(tvii.getLoc("vino.setup.screen3.p2"));
+            }
+
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+
+            var providerId = selected.attr("data-provider-id");
+            var providerTz = selected.attr("data-provider-tz");
+
+            if (!providerId || !providerTz) {
+                return tvii.alert(tvii.getLoc("vino.error.default_error"));
+            }
+
+            var form = new FormData();
+            form.append("tv_provider_id", providerId);
+            form.append("tv_provider_tz", providerTz);
+
+            isSavingProvider = true;
+            vino.soundPlayVolume("SE_DECIDE", 30);
+            vino.loading_setIconAppear(true);
+
+            tvii.sendXHRNoTimeout(
+                "POST",
+                "/api/v1/act/settings/provider",
+                function (responseText) {
+                    isSavingProvider = false;
+
+                    var result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        result = null;
+                    }
+
+                    if (!result || result.status !== "success") {
+                        vino.loading_setIconAppear(false);
+                        return tvii.alert(tvii.getLoc("vino.error.default_error"));
+                    }
+
+                    //Leave the loading icon up, the page is about to be replaced
+                    applyNewProvider();
+                },
+                function () {
+                    vino.loading_setIconAppear(false);
+                    isSavingProvider = false;
+                    tvii.alert(tvii.getLoc("vino.error.default_error"));
+                },
+                null,
+                form
+            );
+        });
+
+        settings.find(".button-settings").on("click", function () {
+            var t = $(this);
+            settings.find(".screen-0").hide();
+            settings.find(".menu-header span").text(t.text());
+            //Change TV Provider always reopens on the zipcode step
+            showZipStep();
+            settings.find(".screen-" + t.attr("data-setting-type")).show();
+        })
+
         back.on("click", function () {
+            if (screen2.is(":visible") && providerStep.is(":visible")) {
+                showZipStep();
+                return;
+            }
+
             var isSettingScreen = settings.find(".screen-0:visible").length;
             if (!isSettingScreen) {
                 settings.find(".settings-screen:visible").first().hide();

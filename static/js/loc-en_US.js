@@ -179,6 +179,7 @@ tvii.locFile = {
 
     "vino.home.not_available_feature": "This option is not available yet.\n\nFor support, visit our website at\nhttps://projectrose.cafe",
     "vino.home.not_available_actor_feature": "The function to see actor info\nis not available yet.\n\nFor support, visit our website at\nhttps://projectrose.cafe",
+    "vino.home.settings.provider_relaunch": "Your TV provider has been\nchanged.\n\nPlease close and reopen\nNintendo TVii to apply your new settings.",
 
     "vino.home.program.details_label": "Details",
     "vino.home.program.button.view_future_airing": "View Upcoming Airings",

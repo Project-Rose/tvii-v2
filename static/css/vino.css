@@ -3789,6 +3789,18 @@ button {
     padding-top: 90px;
 }
 
+.settings-container .screen-2 .settings-provider-scroll {
+    width: 600px;
+    max-height: 296px;
+    margin: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.settings-container .screen-2.on-provider {
+    padding-top: 24px;
+}
+
 .settings-container .label-setting {
     position: relative;
     display: -webkit-box;
