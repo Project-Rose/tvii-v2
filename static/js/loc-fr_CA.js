@@ -179,6 +179,7 @@ tvii.locFile = {
 
     "vino.home.not_available_feature": "Cette option n'est pas encore disponible. \n\nPour obtenir du soutien, visitez notre\nsite Web au https://projectrose.cafe",
     "vino.home.not_available_actor_feature": "La fonction pour voir l'info de l'acteur/actrice \n n'est pas encore disponible. \n\nPour obtenir du soutien, visitez notre\nsite Web au https://projectrose.cafe",
+    "vino.home.settings.provider_changed": "Votre fournisseur de services TV a changé.\n\nNintendo TVii va redémarrer\npour appliquer vos nouveaux paramètres.",
     "vino.home.settings.provider_relaunch": "Votre fournisseur de services TV a changé.\n\nVeuillez fermer puis redémarrer Nintendo TVii\npour appliquer vos nouveaux paramètres.",
 
     "vino.home.program.details_label": "Détails",

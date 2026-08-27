@@ -2317,6 +2317,10 @@ function initVinoHome() {
                 tvii.alert(tvii.getLoc("vino.home.settings.provider_relaunch"));
             }
 
+            vino.loading_setIconAppear(false);
+            tvii.alert(tvii.getLoc("vino.home.settings.provider_changed"));
+            vino.loading_setIconAppear(true);
+
             //Unloading means the reload took, so drop the safety net.
             window.addEventListener("pagehide", onLeaving);
             window.addEventListener("unload", onLeaving);
@@ -2394,14 +2398,32 @@ function initVinoHome() {
 
         settings.find(".button-settings").on("click", function () {
             var t = $(this);
+            var type = t.attr("data-setting-type");
+
+            if (type !== "2") return alert(tvii.getLoc("vino.home.not_available_feature"));
+
+            if (!vino.navi_getRect()) {
+                vino.lyt_startTouchEffect();
+            }
+            vino.soundPlayVolume("SE_DECIDE", 30);
+
             settings.find(".screen-0").hide();
             settings.find(".menu-header span").text(t.text());
             //Change TV Provider always reopens on the zipcode step
             showZipStep();
-            settings.find(".screen-" + t.attr("data-setting-type")).show();
+            settings.find(".screen-" + type).show();
         })
 
-        back.on("click", function () {
+        back.on("click", function (e) {
+            if (e.originalEvent) {
+                if (!vino.navi_getRect()) {
+                    vino.lyt_startTouchEffect();
+                }
+                vino.soundPlayVolume("SE_CLOSE_TOUCH_OFF", 30);
+            } else {
+                vino.soundPlayVolume("SE_CLOSE", 30);
+            }
+
             if (screen2.is(":visible") && providerStep.is(":visible")) {
                 showZipStep();
                 return;
@@ -2473,12 +2495,17 @@ function initVinoHome() {
             }
         });
 
-        menu.find(".menu-section-2 a:nth-child(1)").on("click", function () {
 
+        menu.find(".menu-section a.button").on("click", function () {
+            return alert(tvii.getLoc("vino.home.not_available_feature"));
+        })
+
+        menu.find(".menu-section-2 a:nth-child(1)").on("click", function () {
+            return alert(tvii.getLoc("vino.home.not_available_feature"));
         })
 
         menu.find(".menu-section-2 a:nth-child(2)").on("click", function () {
-
+            return alert(tvii.getLoc("vino.home.not_available_feature"));
         })
 
         menu.find(".menu-section-2 a:nth-child(3)").on("click", function () {
