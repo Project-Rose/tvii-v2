@@ -3786,19 +3786,25 @@ button {
 }
 
 .settings-container .screen-2 {
-    padding-top: 90px;
+    padding-top: 70px;
 }
 
-.settings-container .screen-2 .settings-provider-scroll {
-    width: 600px;
-    max-height: 296px;
-    margin: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
+.settings-container .screen-2 .settings-screen-scroll {
+    position: relative;
+    width: 854px;
+    height: 410px;
+    padding: 12px 60px 30px;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    overflow: hidden;
 }
 
-.settings-container .screen-2.on-provider {
-    padding-top: 24px;
+.settings-container .screen-2 .dialog-container {
+    min-height: 368px;
+}
+
+.settings-container .screen-2 .dialog-container>p {
+    padding-bottom: 10px;
 }
 
 .settings-container .label-setting {

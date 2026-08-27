@@ -512,6 +512,21 @@ var tvii = {
             return str.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
         }
 
+        function getStickScrollContainer() {
+            var candidates = $(".l-stick-scroll:not(.scroll-disabled):visible");
+            var inPopup = candidates.filter(function () {
+                return $(this).closest(".popup").length > 0;
+            });
+
+            if (inPopup.length) {
+                candidates = inPopup;
+            }
+
+            //Nothing here is z-indexed against its siblings, so later in the
+            //document is what paints on top.
+            return candidates.last();
+        }
+
         window.addEventListener(
             "focus",
             function (e) {
@@ -532,7 +547,7 @@ var tvii = {
                 naviRect.bottom = naviRect.top + naviRect.height;
 
                 // Parent rect
-                var parent = $(".l-stick-scroll:not(.scroll-disabled):visible").first();
+                var parent = getStickScrollContainer();
                 if (!parent.length) return;
                 var rawParent = parent.get(0);
                 var parentRect = rawParent.getBoundingClientRect();
@@ -588,7 +603,7 @@ var tvii = {
             }
 
             // Find the first visible scroll container
-            var c = $(".l-stick-scroll:not(.scroll-disabled):visible").first();
+            var c = getStickScrollContainer();
             if (!c.length) return;
 
             // Check dead zone
@@ -2119,23 +2134,28 @@ function initVinoHome() {
         // label the reused setup strings here instead of with data-loc
         zipConfirm.text(tvii.getLoc("vino.continue"));
         providerConfirm.text(tvii.getLoc("vino.ok"));
+        zipStep.find("h1").html(tvii.getLoc("vino.setup.screen2.h1"));
+        zipStep.find(".dialog-container>p").html(tvii.getLoc("vino.setup.screen2.p1"));
+        providerStep.find("h1").html(tvii.getLoc("vino.setup.screen3.h1"));
+        providerStep.find(".dialog-container>p").html(tvii.getLoc("vino.setup.screen3.p1"));
         providerTypes.eq(0).text(tvii.getLoc("vino.setup.screen3.t1"));
         providerTypes.eq(1).text(tvii.getLoc("vino.setup.screen3.t2"));
         providerTypes.eq(2).text(tvii.getLoc("vino.setup.screen3.t3"));
 
         tvii.setClassHoverToEls(zipConfirm.add(providerConfirm));
-        screen2.find(".settings-provider-scroll").makeScrollContainer(false);
+        var screenScroll = screen2.find(".settings-screen-scroll");
+        screenScroll.makeScrollContainer(false);
 
         function showZipStep() {
             providerStep.hide();
             zipStep.show();
-            screen2.removeClass("on-provider");
+            screenScroll.scrollTop(0);
         }
 
         function showProviderStep() {
             zipStep.hide();
             providerStep.show();
-            screen2.addClass("on-provider");
+            screenScroll.scrollTop(0);
         }
 
         function onSettingsZipUpdate() {
