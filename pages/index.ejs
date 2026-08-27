@@ -191,12 +191,41 @@ if (typeof lang === "string") {
 
       <div class="settings-screen screen-1" style="display:none;"></div>
       <div class="settings-screen screen-2" style="display:none;">
-        <div class="label-setting">
-        <p>Enter your zipcode:</p>
-        <div class="zipcode-input">
-            <input navi_target navi_no_reset type="number" maxlength="5" class="zip-usa none" />
-            <input navi_target navi_no_reset type="text" maxlength="7" class="zip-canada none" />
-        </div>
+        <div class="settings-screen-scroll l-stick-scroll">
+          <div class="settings-step step-zipcode">
+            <div class="dialog-container">
+              <h1></h1>
+              <p></p>
+
+              <div class="zipcode-input">
+                <input navi_target navi_no_reset type="number" maxlength="5" class="zip-usa none" />
+                <input navi_target navi_no_reset type="text" maxlength="7" class="zip-canada none" />
+              </div>
+
+              <div class="dialog-buttons">
+                <a href="javascript:void(0)" navi_target class="btn-2 disabled settings-zipcode-confirm"></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-step step-provider" style="display:none;">
+            <div class="dialog-container">
+              <h1></h1>
+              <p></p>
+
+              <div class="tvproviders none">
+                <div class="providertypes">
+                  <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="cable"></a>
+                  <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="satellite"></a>
+                  <a href="javascript:void(0)" navi_target navi_no_reset data-provider-filter="antenna"></a>
+                </div>
+              </div>
+
+              <div class="dialog-buttons">
+                <a href="javascript:void(0)" navi_target class="btn-2 settings-provider-confirm"></a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     

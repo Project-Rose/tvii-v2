@@ -1,0 +1,32 @@
+# This is just an example - not intended for use in production.
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadbdata:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  # Pulled from docs or something
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning # Custom command for persistence and password
+    volumes:
+      - redisdata:/data
+
+volumes:
+  mariadbdata:
+    name: mariadbdata
+  redisdata:
+    name: redisdata

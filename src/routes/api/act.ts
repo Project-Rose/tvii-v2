@@ -181,7 +181,7 @@ router.post(
                 utc_offset,
                 serial_number: serialNumber,
                 access_key: accessKey,
-                last_data_update: new Date().toISOString(),
+                last_data_update: new Date(),
                 env: userEnv,
             });
 
@@ -234,7 +234,7 @@ router.post(
             }
 
             if (Array.isArray(favorites) && favorites.length !== 0) {
-                var now = new Date().toISOString();
+                var now = new Date();
 
                 // remove duplicates inside request itself
                 favorites = [...new Set(favorites)];
@@ -283,6 +283,75 @@ router.post(
         } catch (error) {
             console.error("/createAccount error:", error);
             res.status(500).json({
+                status: "error",
+                error: "Internal server error",
+            });
+        }
+    }
+);
+
+router.post(
+    "/settings/provider",
+    upload.none(),
+    async (req: Request, res: Response): Promise<any> => {
+        try {
+            const token = parseServiceToken(req);
+
+            const account = await db("account")
+                .where({
+                    pid: token.pid,
+                    serial_number: token.serial_number,
+                    access_key: token.access_key,
+                })
+                .first();
+
+            if (!account) {
+                return res.status(200).json({ status: "no_account_yet" });
+            }
+
+            const validationResult = z
+                .object({
+                    tv_provider_id: z.string().min(1).max(64),
+                    tv_provider_tz: z.string().min(1).max(64),
+                })
+                .safeParse(req.body);
+
+            if (!validationResult.success) {
+                return res.status(400).json({
+                    status: "error",
+                    error: "Invalid provider id or timezone",
+                });
+            }
+
+            const { tv_provider_id, tv_provider_tz } = validationResult.data;
+
+            const updated = await db("settings")
+                .where({ pid: account.pid })
+                .update({ tv_provider_id, tv_provider_tz });
+
+            // Nothing to update.
+            if (!updated) {
+                console.warn(
+                    `No settings row to update for PID ${account.pid}`
+                );
+                return res.status(500).json({
+                    status: "error",
+                    error: "No settings to update.",
+                });
+            }
+
+            console.log(
+                `TV provider changed for PID ${account.pid} -> ${tv_provider_id} (${tv_provider_tz})`
+            );
+
+            return res.status(200).json({
+                status: "success",
+                tv_provider_id,
+                tv_provider_tz,
+            });
+        } catch (error) {
+            console.error("/settings/provider error:", error);
+            return res.status(500).json({
                 status: "error",
                 error: "Internal server error",
             });

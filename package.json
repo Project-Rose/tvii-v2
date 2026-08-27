@@ -31,5 +31,8 @@
     "sharp": "^0.34.5",
     "twitter-api-v2": "^1.29.0",
     "zod": "^4.3.5"
+  },
+  "scripts": {
+    "dev": "bun --watch index.ts"
   }
 }

@@ -114,6 +114,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.window_title": 'Escribe sobre "%s"',
     "vino.home.olv.crosspost.post.spoilers": 'Marcar Revelación',
     "vino.home.olv.crosspost.post.doodlebut": 'Dibujar',
+    
+    "vino.home.olv.modal.header_title_new": "<b>Nuevo</b> %s",
+    "vino.home.olv.modal.header_title_live": '<b class="live">En vivo</b> %s',
 
     "vino.home.olv.modal.header_title_new": "<b>Nuevo</b> %s",
     "vino.home.olv.modal.header_title_live": '<b class="live">En vivo</b> %s',
@@ -179,6 +182,8 @@ tvii.locFile = {
 
     "vino.home.not_available_feature": "Esta funcionalidad no esta lista aún.\n\nPara ayuda, visita nuestra página web en\nhttps://projectrose.cafe",
     "vino.home.not_available_actor_feature": "La funcionalidad para ver los actores\naún no esta lista.\n\nPara ayuda, visita nuestra página web en\nhttps://projectrose.cafe",
+    "vino.home.settings.provider_changed": "Tu proveedor de TV ha sido\ncambiado.\n\nNintendo TVii se recargará ahora\npara aplicar la nueva configuración.",
+    "vino.home.settings.provider_relaunch": "Tu proveedor de TV ha sido\ncambiado.\n\nPor favor cierra y vuelve a abrir\nNintendo TVii para aplicar la nueva configuración.",
 
     "vino.home.program.details_label": "Detalles",
     "vino.home.program.button.view_future_airing": "Ver transmisiones futuras",
