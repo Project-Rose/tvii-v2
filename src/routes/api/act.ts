@@ -181,7 +181,7 @@ router.post(
                 utc_offset,
                 serial_number: serialNumber,
                 access_key: accessKey,
-                last_data_update: new Date().toISOString(),
+                last_data_update: new Date(),
                 env: userEnv,
             });
 
@@ -234,7 +234,7 @@ router.post(
             }
 
             if (Array.isArray(favorites) && favorites.length !== 0) {
-                var now = new Date().toISOString();
+                var now = new Date();
 
                 // remove duplicates inside request itself
                 favorites = [...new Set(favorites)];
