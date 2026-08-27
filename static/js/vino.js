@@ -2231,7 +2231,6 @@ function initVinoHome() {
     }
 
     $(".header .menu").on("click", function (e) {
-        return alert(tvii.getLoc("vino.home.not_available_feature"));
         if (isHeaderButtonBlocked) return;
         if (e.originalEvent) {
             if (!vino.navi_getRect()) {
