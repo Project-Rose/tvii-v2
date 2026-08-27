@@ -1,9 +1,10 @@
 import express, { type Request, type Response, type Router } from "express";
 import { join } from "path";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
-import { db } from "../..//utils/db.ts";
-import { getRegion } from "../..//utils/other.ts";
+import { db } from "../../utils/db.ts";
+import { getRealIpFromRequest, getRegion } from "../../utils/other.ts";
 import Mii from "@pretendonetwork/mii-js";
+import NnidResolver from "../../utils/NnidResolver.mjs";
 
 const router: Router = express.Router();
 
@@ -54,7 +55,7 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
     const token = parseServiceToken(req);
 
-    if (!token.ok) {
+    if (!token.ok || token.pid === undefined) {
         return res.sendStatus(404);
     }
 
@@ -98,61 +99,39 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
     if (now.getTime() - lastUpdate.getTime() > oneHour) {
         try {
-            const updateMiiData = await fetch(
-                `https://mii-unsecure.ariankordi.net/mii_data/?pid=${token.pid}&api_id=1&force_refresh=1`
-            );
+            const userData = await NnidResolver.miiFromPid(String(token.pid));
+            const mii_name = userData.name;
+            const mii_data = userData.miiData;
 
-            if (updateMiiData.ok) {
-                const PIDData = await updateMiiData.json() as any;
+            const mii = new Mii(Buffer.from(mii_data, "base64"));
+            const mii_bday = mii.birthDay + "/" + mii.birthMonth;
 
-                const mii_name = PIDData.name;
-                const mii_data = PIDData.data;
+            const ip = getRealIpFromRequest(req);
 
-                const mii = new Mii(Buffer.from(mii_data, "base64"));
-                const mii_bday = mii.birthDay + "/" + mii.birthMonth;
+            // timezone lookup
+            const ipReq = await fetch(`https://ipwho.is/${ip}`);
+            const ipInfo = await ipReq.json() as any;
 
-                // Extract real IP (Cloudflare first)
-                let ip =
-                    req.headers["cf-connecting-ip"] ||
-                    req.headers["x-forwarded-for"] ||
-                    req.connection.remoteAddress ||
-                    req.ip;
-
-                if (typeof ip === "string" && ip.includes(",")) {
-                    ip = ip.split(",")[0];
-                }
-
-                if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                    ip = ip.substring(7);
-                }
-
-                // timezone lookup
-                const ipReq = await fetch(`https://ipwho.is/${ip}`);
-                const ipInfo = await ipReq.json() as any;
-
-                if (
-                    ipInfo?.success &&
-                    ipInfo?.timezone &&
-                    typeof ipInfo.timezone.offset === "number"
-                ) {
-                    utc_offset = ipInfo.timezone.offset;
-                }
-
-                Object.assign(updateValues, {
-                    mii_name,
-                    mii_data,
-                    mii_bday,
-                    utc_offset,
-                    last_data_update: new Date().toISOString(),
-                });
-
-                console.log(`PNID Data + UTC updated for PID ${token.pid}`);
-            } else {
-                updateValues.last_data_update = new Date().toISOString();
+            if (
+                ipInfo?.success &&
+                ipInfo?.timezone &&
+                typeof ipInfo.timezone.offset === "number"
+            ) {
+                utc_offset = ipInfo.timezone.offset;
             }
+
+            Object.assign(updateValues, {
+                mii_name,
+                mii_data,
+                mii_bday,
+                utc_offset
+            });
+
+            console.log(`PNID Data + UTC updated for PID ${token.pid}`);
         } catch (err) {
             console.warn("Mii/IP update failed:", err);
-            updateValues.last_data_update = new Date().toISOString();
+        } finally {
+          updateValues.last_data_update = new Date().toISOString();
         }
     }
 

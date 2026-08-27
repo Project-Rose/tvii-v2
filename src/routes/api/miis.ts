@@ -1,6 +1,7 @@
 import express, { type Request, type Response, type Router } from "express";
 
 import NodeCache from "node-cache";
+import { env } from "../../env.ts";
 
 const router: Router = express.Router();
 
@@ -23,7 +24,7 @@ router.get("/", async (req: Request, res: Response) => {
         }
 
         const url =
-            `https://mii-unsecure.ariankordi.net/miis/image.png?verifyCRC16=1&${query}`;
+            `${env.VINO_JP_MII_IMAGE_PNG_BASE_URL}?verifyCRC16=1&${query}`;
 
         const response = await fetch(url);
 

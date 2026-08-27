@@ -7,8 +7,10 @@ import { db } from "../../utils/db.ts";
 import { z } from "zod";
 import { BskyClient } from "../../utils/bsky.ts";
 import { env } from "../../env.ts";
+import NnidResolver from "../../utils/NnidResolver.mjs";
 import crypto from "crypto";
 import { logger } from "../../utils/logger.ts";
+import { getRealIpFromRequest } from "../../utils/other.ts";
 
 // Key must be 32 bytes for AES-256
 const AES_KEY = Buffer.from(env.VINO_JP_CONFIG_BSKY_AES_KEY, "base64");
@@ -54,6 +56,10 @@ router.post(
             const countryCode = token.country;
             const principalId = token.pid;
 
+            if (principalId === undefined) {
+                return res.status(400).json({ status: "error" });
+            }
+
             const existing = await db("account")
                 .where({ pid: principalId })
                 .first();
@@ -67,22 +73,20 @@ router.post(
                 });
             }
 
-            const checkPID = await fetch(
-                `https://mii-unsecure.ariankordi.net/mii_data/?pid=${principalId}&api_id=1&force_refresh=1`
-            );
-            if (!checkPID.ok) {
+            let miiResponse;
+            try {
+                miiResponse = await NnidResolver.miiFromPid(String(principalId));
+            } catch (err) {
                 console.warn(
-                    `Mii Unsecure Pretendo fetching error for : ${token.pid} ${token.serial_number}`
+                    `Mii data fetching error for: ${token.pid} ${token.serial_number}`, err
                 );
                 return res.status(500).json({
                     status: "error_not_pretendo",
                 });
             }
 
-            const checkPIDData = await checkPID.json() as any;
-
-            const mii_name = checkPIDData!.name!;
-            const mii_data = checkPIDData!.data!;
+            const mii_name = miiResponse.name;
+            const mii_data = miiResponse.miiData;
 
             const mii = new Mii(Buffer.from(mii_data, "base64"));
 
@@ -134,21 +138,7 @@ router.post(
             const tvProviderTzChosen = data.tv_provider_tz;
 
             // Extract the user's IP
-            let ip =
-                req.headers["cf-connecting-ip"] ||
-                req.headers["x-forwarded-for"] ||
-                req.connection.remoteAddress ||
-                req.ip;
-
-            // If x-forwarded-for contains multiple IPs, take the first
-            if (typeof ip === "string" && ip.includes(",")) {
-                ip = ip.split(",")[0];
-            }
-
-            // Strip IPv6 prefix
-            if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                ip = ip.substring(7);
-            }
+            const ip = getRealIpFromRequest(req);
 
             const ipReq = await fetch(`https://ipwho.is/${ip}`);
             const ipInfo = await ipReq.json() as any;
