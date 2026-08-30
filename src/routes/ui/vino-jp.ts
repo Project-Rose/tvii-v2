@@ -152,7 +152,7 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
             }
         } catch (err) {
             console.warn("Mii/IP update failed:", err);
-            updateValues.last_data_update = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            updateValues.last_data_update = new Date().slice(0, 19).replace('T', ' ');
         }
     }
 
