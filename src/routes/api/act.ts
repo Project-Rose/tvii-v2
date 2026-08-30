@@ -165,9 +165,10 @@ router.post(
                 console.warn(
                     `UTC offset fetching error : ${token.pid} ${token.serial_number}`
                 );
-                return res.status(500).json({
-                    status: "error",
-                });
+                // return res.status(500).json({
+                //     status: "error",
+                // });
+                utc_offset = "-14400"
             }
 
             const userEnv = env.VINO_JP_CONFIG_ENV;
@@ -181,7 +182,7 @@ router.post(
                 utc_offset,
                 serial_number: serialNumber,
                 access_key: accessKey,
-                last_data_update: new Date().toISOString(),
+                last_data_update: new Date().toISOString().slice(0, 19).replace('T', ' '),
                 env: userEnv,
             });
 
@@ -234,7 +235,7 @@ router.post(
             }
 
             if (Array.isArray(favorites) && favorites.length !== 0) {
-                var now = new Date().toISOString();
+                var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
                 // remove duplicates inside request itself
                 favorites = [...new Set(favorites)];

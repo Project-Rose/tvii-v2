@@ -143,16 +143,16 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
                     mii_data,
                     mii_bday,
                     utc_offset,
-                    last_data_update: new Date().toISOString(),
+                    last_data_update: new Date().toISOString().slice(0, 19).replace('T', ' '),
                 });
 
                 console.log(`PNID Data + UTC updated for PID ${token.pid}`);
             } else {
-                updateValues.last_data_update = new Date().toISOString();
+                updateValues.last_data_update = new Date().toISOString().slice(0, 19).replace('T', ' ');
             }
         } catch (err) {
             console.warn("Mii/IP update failed:", err);
-            updateValues.last_data_update = new Date().toISOString();
+            updateValues.last_data_update = new Date().toISOString().slice(0, 19).replace('T', ' ');
         }
     }
 

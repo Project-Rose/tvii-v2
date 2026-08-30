@@ -97,6 +97,7 @@ import {
 } from "@aws-sdk/client-s3";
 import Redis from "ioredis";
 import * as cheerio from "cheerio";
+import { pngBase64ToTgaBase64 } from "../../utils/olvApiImages.ts";
 
 const redis = new Redis();
 
@@ -254,6 +255,7 @@ router.post(
     "/postsAlt",
     upload.none(),
     async (req: Request, res: Response): Promise<any> => {
+        const userSettingsMiiverse = true; // FIXME: THIS IS TEMPORARY!!!!!!!!!!!!!!!!!!
         try {
             const token = parseServiceToken(req);
 
@@ -598,6 +600,83 @@ router.post(
                             console.log("bsky memo upload error: ", e);
                         }
                     }
+                }
+
+                const olvApiUrl = req.get("x-nintendo-olv-api-url");
+                const olvServiceToken = req.get("x-nintendo-servicetoken");
+                const olvParamPack = req.get("x-nintendo-parampack");
+                const olvUserAgent = req.get("x-nintendo-olv-user-agent");
+
+                if (userSettingsMiiverse && olvApiUrl && olvServiceToken && olvParamPack && olvUserAgent) {
+                    const form = new FormData();
+
+                    console.log(postForm)
+
+                    if (postForm.body !== undefined) {
+                        form.append("body", postForm.body);
+                    }
+
+                    if (postForm.painting !== undefined) {
+                        const tgaBase64 = await pngBase64ToTgaBase64(postForm.painting);
+                        form.append("painting", tgaBase64);
+                    }
+
+                    if (postForm.feeling_id !== undefined) {
+                        form.append("feeling_id", String(postForm.feeling_id));
+                    }
+
+                    if (postForm.olv_language_id !== undefined) {
+                        form.append("language_id", String(postForm.olv_language_id));
+                    }
+
+                    if (postForm.is_spoiler !== undefined) {
+                        form.append("is_spoiler", String(postForm.is_spoiler));
+                    }
+
+                    if (postForm.is_autopost !== undefined) {
+                        form.append("is_autopost", String(postForm.is_autopost));  
+                    }
+
+                    if (postForm.topic_tag !== undefined) {
+                        form.append("topic_tag", String(postForm.topic_tag));
+                    }
+
+                    if (postForm.search_key !== undefined) {
+                        for (const key of [].concat(postForm.search_key)) {
+                            form.append("search_key", key);
+                        }
+                    }
+
+                    if (postForm.screenshot !== undefined) {
+                        function stripDataUrlPrefix(base64: string): string {
+                            const commaIndex = base64.indexOf(",");
+                            return commaIndex !== -1 ? base64.slice(commaIndex + 1) : base64;
+                        }
+                        form.append("screenshot", stripDataUrlPrefix(postForm.screenshot));
+                    }
+
+                    form.append("is_app_jumpable", "1");
+                    form.append("community_id", "0")
+
+                    console.log(form)
+
+                    const response = await fetch(
+                        `https://${olvApiUrl}/v1/posts`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-Nintendo-ServiceToken": olvServiceToken,
+                                "X-Nintendo-ParamPack": olvParamPack,
+                                "User-Agent": olvUserAgent,
+                            },
+                            body: form,
+                        }
+                    );
+
+                    const responseText = await response.text();
+
+                    console.log(response.status);
+                    console.log(responseText);
                 }
 
                 const postResult = await db("posts").where({ post_id: postIdForLink }).first();

@@ -191,25 +191,6 @@ var tvii = {
             }
             return null;
         },
-        appendMiiverseHeadersToXhr: function (xhr) {
-            if (!vino.olv_isEnabled()) return;
-            xhr.setRequestHeader(
-                "X-Nintendo-Olv-Api-Url",
-                vino.olv_getHostName()
-            );
-            xhr.setRequestHeader(
-                "X-Nintendo-ServiceToken",
-                vino.olv_getServiceToken()
-            );
-            xhr.setRequestHeader(
-                "X-Nintendo-ParamPack",
-                vino.olv_getParameterPack()
-            );
-            xhr.setRequestHeader(
-                "X-Nintendo-Olv-User-Agent",
-                vino.olv_getUserAgent()
-            );
-        },
         //Replacement to tvii.olv
         requestPosts: function (
             limit,
@@ -282,19 +263,24 @@ var tvii = {
 
             postForm.append("feeling_id", feeling ? String(feeling) : "0");
 
+            postForm.append("is_autopost", isAutopost)
+
+            var headers = null;
+
             //For miiverse crosspost
-            /*postForm.append(
-                "olv_language_id",
-                tvii.posts.getMiiverseParPackProp("language_id")
-                    ? tvii.posts.getMiiverseParPackProp("language_id")
-                    : "1"
-            );*/
+            if (vino.olv_isEnabled()) {
+                var langId = tvii.posts.getMiiverseParPackProp("language_id");
+                postForm.append("olv_language_id", langId ? langId : "1");
+                headers = [
+                    "X-Nintendo-Olv-Api-Url: " + vino.olv_getHostName().replace(/^https?:\/\//, ""),
+                    "X-Nintendo-ServiceToken: " + vino.olv_getServiceToken(),
+                    "X-Nintendo-ParamPack: " + vino.olv_getParameterPack(),
+                    "X-Nintendo-Olv-User-Agent: " + vino.olv_getUserAgent()
+                ];
+            }
 
             var url = "/api/v1/socials/postsAlt";
-            //For miiverse crosspost
-            //tvii.posts.appendMiiverseHeadersToXhr();
-
-            var xhr = tvii.sendXHR("POST", url, null, null, null, postForm)
+            var xhr = tvii.sendXHR("POST", url, null, null, headers, postForm)
             xhr.onload = function () {
                 onPostSendFinish(
                     xhr.status === 200,
@@ -5440,7 +5426,7 @@ function initVinoHome() {
                 topicTag,
                 null,
                 1,
-                false,
+                true,
                 false,
                 searchKey1,
                 searchKey2,
@@ -5854,7 +5840,7 @@ function initVinoHome() {
                     topicTag,
                     null,
                     feeling,
-                    false,
+                    true,
                     isSpoiler,
                     searchKey1,
                     searchKey2,
@@ -5878,7 +5864,7 @@ function initVinoHome() {
                     topicTag,
                     null,
                     feeling,
-                    false,
+                    true,
                     isSpoiler,
                     searchKey1,
                     searchKey2,
