@@ -182,11 +182,7 @@ router.post(
                 utc_offset,
                 serial_number: serialNumber,
                 access_key: accessKey,
-<<<<<<< HEAD
                 last_data_update: new Date().toISOString().slice(0, 19).replace('T', ' '),
-=======
-                last_data_update: new Date(),
->>>>>>> 1549ef9ff488de678122961b8f58594a39eb7e05
                 env: userEnv,
             });
 
@@ -239,11 +235,8 @@ router.post(
             }
 
             if (Array.isArray(favorites) && favorites.length !== 0) {
-<<<<<<< HEAD
                 var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-=======
-                var now = new Date();
->>>>>>> 1549ef9ff488de678122961b8f58594a39eb7e05
+
 
                 // remove duplicates inside request itself
                 favorites = [...new Set(favorites)];
