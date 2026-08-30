@@ -165,10 +165,9 @@ router.post(
                 console.warn(
                     `UTC offset fetching error : ${token.pid} ${token.serial_number}`
                 );
-                // return res.status(500).json({
-                //     status: "error",
-                // });
-                utc_offset = "-14400"
+                return res.status(500).json({
+                    status: "error",
+                });
             }
 
             const userEnv = env.VINO_JP_CONFIG_ENV;
